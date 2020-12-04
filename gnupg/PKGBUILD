@@ -1,45 +1,43 @@
 
 pkgname=gnupg
-pkgver=2.1.15
+pkgver=2.2.25
 pkgrel=1
 pkgdesc="GNU Privacy Guard 2 - a PGP replacement tool"
 arch=('x86_64')
 license=('GPL')
-url="http://www.gnupg.org/"
+url="https://www.gnupg.org/"
 depends=('libldap' 'curl' 'bzip2' 'zlib' 'libksba' 'libgcrypt' 'libgpg-error'
         'npth' 'libassuan' 'texinfo' 'readline' 'pinentry' 'gnutls') # 'libusb')
 # https://www.gnupg.org/faq/whats-new-in-2.1.html
 conflicts=('gnupg2' 'dirmngr')
 provides=("gnupg2=${pkgver}" 'dirmngr')
 replaces=('gnupg2' 'dirmngr')
-source=("ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-$pkgver.tar.bz2")
-md5sums=('808d10b89c1f0de8d4d2a556aa36b623')
+source=("https://www.gnupg.org/ftp/gcrypt/gnupg/gnupg-${pkgver}.tar.bz2")
+sha1sums=('074b21dd07419575fa31c0c5d3116596d5544cbd')
 
 build() {
-	cd gnupg-$pkgver
-	
-	./configure --prefix=/usr \
-              --sysconfdir=/etc \
-	      --libexecdir=/usr/lib/gnupg \
-	      --enable-maintainer-mode \
-	      --enable-symcryptrun \
-	      --enable-gpgtar 
+    cd gnupg-$pkgver
+
+    ./configure --prefix=/usr \
+        --sysconfdir=/etc \
+        --libexecdir=/usr/lib/gnupg \
+        --enable-maintainer-mode \
+        --enable-symcryptrun \
+        --enable-gpgtar 
   make
 }
 
 check() {
-	cd gnupg-${pkgver}
-	
-	make check
+    cd gnupg-${pkgver}
+
+    make check
 }
 
 package() {
-	cd ${pkgname}-${pkgver}
-	make DESTDIR=${pkgdir} install
-	
-	ln -s gpg2 ${pkgdir}/usr/bin/gpg
-	ln -s gpgv2 ${pkgdir}/usr/bin/gpgv
-	ln -s gpg2.1.gz ${pkgdir}/usr/share/man/man1/gpg.1.gz
-	#rm ${pkgdir}/usr/share/gnupg/com-certs.pem 
+    cd ${pkgname}-${pkgver}
+    make DESTDIR=${pkgdir} install
+
+    ln -s gpg2.1.gz ${pkgdir}/usr/share/man/man1/gpg.1.gz
+    #rm ${pkgdir}/usr/share/gnupg/com-certs.pem 
 }
 

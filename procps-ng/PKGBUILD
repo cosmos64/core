@@ -1,22 +1,28 @@
 
 pkgname=procps-ng
-pkgver=3.3.12
+pkgver=3.3.16
 pkgrel=1
 pkgdesc='Utilities for monitoring your system and its processes'
 arch=('x86_64')
-url="http://sourceforge.net/projects/procps-ng/"
+url="https://gitlab.com/procps-ng/procps/wikis/home"
 license=('GPL' 'LGPL')
 groups=('base')
 depends=('ncurses')
 provides=('procps')
 options=('!libtool')
-source=("http://downloads.sourceforge.net/project/procps-ng/Production/${pkgname}-${pkgver}.tar.xz")
-md5sums=('957e42e8b193490b2111252e4a2b443c')
+source=("https://downloads.sourceforge.net/project/procps-ng/Production/${pkgname}-${pkgver}.tar.xz")
+md5sums=('e8dc8455e573bdc40b8381d572bbb89b')
 
 build() {
   cd ${pkgname}-${pkgver}
   
-  ./configure --exec-prefix=/ --prefix=/usr --sysconfdir=/etc--libdir=/usr/lib --bindir=/usr/bin --with-systemd --disable-kill
+  ./configure --exec-prefix=/ \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --libdir=/usr/lib \
+    --bindir=/usr/bin \
+    --with-systemd \
+    --disable-kill
   make
 }
 

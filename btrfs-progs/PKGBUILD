@@ -1,25 +1,25 @@
 
 pkgname=btrfs-progs
-pkgver=4.8.2
+pkgver=5.9
 pkgrel=1
 pkgdesc="Btrfs filesystem utilities."
 arch=('x86_64')
-url="http://btrfs.wiki.kernel.org/"
+url="https://btrfs.wiki.kernel.org/"
 license=('GPL2')
-depends=('glibc' 'e2fsprogs' 'lzo2' 'asciidoc')
-makedepends=('git' 'xmlto')
+depends=('glibc' 'e2fsprogs' 'lzo2' 'python3' 'zstd')
+makedepends=('asciidoc' 'git' 'xmlto' 'python3-setuptools')
 options=('!staticlibs')
 source=("https://www.kernel.org/pub/linux/kernel/people/kdave/btrfs-progs/${pkgname}-v${pkgver}.tar.xz"
         'initcpio-install-btrfs'
         'initcpio-hook-btrfs')
-md5sums=('903f87886a7810a6819e8db915e4ec29'
-         '5642e1524eefddf9195693cd114ecc65'
-         '85ff8daca50a5ba3dff3c3e641d38b1e')
+sha256sums=('b89358a665ad753ecbdff11d2be77d230d2b197bb3c7e0eb739fb979c087a791'
+            '34e1472c028875bb8cc7d06fa18aad9c1c90e3719de416733e9baac82a12cd94'
+            '116a8fac508a3872b77f249e71d9de4f9b61cd20edfde01c99a5deba143769df')
 
 build() {
    cd ${pkgname}-v${pkgver}
    
-   ./configure --prefix=/usr 
+   ./configure --prefix=/usr
    make  
 }
 

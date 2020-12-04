@@ -1,17 +1,17 @@
 
 pkgname=automake
-pkgver=1.15
-pkgrel=4
+pkgver=1.16.3
+pkgrel=1
 pkgdesc="A GNU tool for automatically creating Makefiles"
 arch=('x86_64')
 license=('GPL')
-url="http://www.gnu.org/software/automake"
+url="https://www.gnu.org/software/automake"
 groups=('base-devel')
 depends=('perl' 'bash')
 makedepends=('autoconf')
-checkdepends=('dejagnu' 'python2' 'java-environment' 'vala' 'emacs-nox' 'gcc-fortran')
-source=("ftp://ftp.gnu.org/gnu/${pkgname}/${pkgname}-${pkgver}.tar.xz")
-md5sums=('9a1ddb0e053474d9d1105cfe39b0c48d')
+checkdepends=('dejagnu' 'python3' 'java-environment' 'vala' 'emacs-nox' 'gcc-fortran')
+source=("https://ftp.gnu.org/gnu/automake/${pkgname}-${pkgver}.tar.xz")
+md5sums=('c27f608a4e1f302ec7ce42f1251c184e')
 
 build() {
   cd ${pkgname}-${pkgver}
@@ -22,8 +22,10 @@ build() {
 
 check(){
   cd ${pkgname}-${pkgver}
+  # see http://www.linuxfromscratch.org/lfs/view/development/chapter06/automake.html
+  #sed -i "s:./configure:LEXLIB=/usr/lib/libfl.a &:" t/lex-{clean,depend}-cxx.sh
  
-  make check
+  make check PYTHON=/usr/bin/python3
 }
 
 package() {

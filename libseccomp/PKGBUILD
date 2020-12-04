@@ -1,19 +1,20 @@
 
 pkgname=libseccomp
-pkgver=2.3.1
-pkgrel=2
+pkgver=2.5.1
+pkgrel=1
 pkgdesc='Library that provides an easy to use, platform independent, interface to the Linux Kernel syscall filtering mechanism.'
 arch=('x86_64')
 license=('LGPL2.1')
 url="https://github.com/seccomp/libseccomp"
-depends=('glibc')
+depends=('glibc' 'gperf')
 options=("!staticlibs")
-source=("https://github.com/seccomp/libseccomp/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-md5sums=('e6f3e84921ef9c2e9188681963f0943f')
+source=("https://github.com/seccomp/libseccomp/archive/v${pkgver}.tar.gz")
+sha256sums=('76ad54e31d143b39a99083564045212a965e026a1010a742edd793d26d699829')
 
 build() {
   cd ${pkgname}-${pkgver}
 
+  ./autogen.sh
   ./configure --prefix=/usr
   make
 }

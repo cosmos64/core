@@ -1,24 +1,26 @@
 
 pkgname=kmod
-pkgver=23
+pkgver=27
 pkgrel=1
 #_kver=4.0.5-1
 pkgdesc="Linux kernel module handling"
 arch=('x86_64')
-url='http://git.kernel.org/?p=utils/kernel/kmod/kmod.git;a=summary'
+url='https://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git/tree/README'
 license=('GPL2')
 depends=('glibc' 'zlib')
 options=('!libtool')
-source=("ftp://ftp.kernel.org/pub/linux/utils/kernel/kmod/${pkgname}-${pkgver}.tar.xz"
-        "depmod-search.conf")
-md5sums=('3cf469f40ec2ed51f56ba45ea03793e7'
-         '9ae9acc68ca27134f55a0959073b8e53')
+source=("https://www.kernel.org/pub/linux/utils/kernel/kmod/${pkgname}-${pkgver}.tar.xz"
+        'depmod-search.conf')
+sha256sums=('c1d3fbf16ca24b95f334c1de1b46f17bbe5a10b0e81e72668bdc922ebffbbc0c'
+            '884bf2246f9cd42a4dce9886153d91a7cdfb0dcabcb0f293d31cb33077be76a4')
 
 build() {
   cd ${pkgname}-${pkgver}
 
   ./configure \
     --sysconfdir=/etc \
+    --with-openssl \
+    --with-xz \
     --with-zlib \
     --disable-test-modules
   make

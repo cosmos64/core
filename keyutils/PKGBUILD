@@ -1,20 +1,20 @@
 
 pkgname=keyutils
-pkgver=1.5.9
-pkgrel=3
+pkgver=1.6.3
+pkgrel=1
 pkgdesc="Linux Key Management Utilities"
 arch=('x86_64')
-url="http://www.kernel.org"
+url="https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git/tree/README"
 license=('GPL2' 'LGPL2.1')
 depends=('glibc' 'sh')
 backup=('etc/request-key.conf')
-source=("http://people.redhat.com/~dhowells/keyutils/${pkgname}-${pkgver}.tar.bz2")
-md5sums=('7f8ac985c45086b5fbcd12cecd23cf07')
+source=("https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git/snapshot/${pkgname}-${pkgver}.tar.gz")
+md5sums=('6b70b2b381c1b6d9adfaf66d5d3e7c00')
 
 build() {
   cd ${pkgname}-${pkgver}
   
-  make # CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS}
+  make 
 }
 
 package() {

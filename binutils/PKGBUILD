@@ -1,37 +1,49 @@
 # toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
 
 pkgname=binutils
-pkgver=2.26.1
+pkgver=2.35.1
+_commit=e521dc888158a6cdbdccef0397e663c437450a80
 pkgrel=1
 pkgdesc="A set of programs to assemble and manipulate binary and object files"
 arch=('x86_64')
-url="http://www.gnu.org/software/binutils/"
+url="https://www.gnu.org/software/binutils/"
 license=('GPL')
 groups=('base-devel')
-depends=('glibc>=2.23' 'zlib')
+depends=('glibc>=2.32' 'zlib')
 checkdepends=('dejagnu' 'bc')
 options=('!libtool' '!distcc' '!ccache')
-source=("ftp://ftp.gnu.org/gnu/binutils/binutils-${pkgver}.tar.gz")
-md5sums=('0a40e61a60f09796a2313aa7fcc7bb07')
+#source=("https://github.com/bminor/binutils-gdb/archive/${_commit}.zip"
+source=("https://ftp.gnu.org/gnu/binutils/binutils-${pkgver}.tar.xz"
+        'ld.patch')
+sha256sums=('3ced91db9bf01182b7e420eab68039f2083aed0a214c0424e257eae3ddee8607'
+            'ce4c37dddc1a7945c4e4c5439f6198f53eea001e1a3c82582e9ce2c6b9fd390d')
 
 prepare() {
-  cd ${srcdir}/binutils-${pkgver}
+  cd binutils-${pkgver}
   
   # libiberty configure tests 
   sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
-
-  mkdir ${srcdir}/binutils-build
+  # build issue similar to https://bugzilla.redhat.com/show_bug.cgi?id=1599521
+  #patch -p1 -i ${srcdir}/ld.patch
 }
 
 build() {
-  cd ${srcdir}/binutils-build
+  mkdir -p binutils-build
+  cd binutils-build
 
-  ${srcdir}/binutils-${pkgver}/configure --prefix=/usr \
+  ../binutils-${pkgver}/configure \
+    --prefix=/usr \
     --with-lib-path=/usr/lib:/usr/local/lib \
     --with-bugurl=https://github.com/KaOSx/core/issues \
-    --enable-ld=default --enable-gold --with-pic \
-    --enable-plugins --enable-threads --enable-shared \
-    --disable-werror --disable-multilib --disable-gdb
+    --enable-ld=default \
+    --enable-gold \
+    --with-pic \
+    --enable-plugins \
+    --enable-threads \
+    --enable-shared \
+    --disable-werror \
+    --disable-multilib \
+    --disable-gdb
 
   make configure-host
 
@@ -39,20 +51,16 @@ build() {
 }
 
 check() {
-  cd ${srcdir}/binutils-build
+  cd binutils-build
 
-  # do not abort on errors - manually check log files
+  # check log files
   make LDFLAGS="" -k check || true
 }
 
 package() {
-  cd ${srcdir}/binutils-build
+  cd binutils-build
   make prefix=${pkgdir}/usr tooldir=${pkgdir}/usr install
 
-  # Remove Windows/Novell specific man pages
-  rm ${pkgdir}/usr/share/man/man1/{dlltool,nlmconv,windres,windmc}*
-
-  # Remove these symlinks, they are not ABI stable.
-  # Programs should compile static to the .a file.
+  rm ${pkgdir}/usr/share/man/man1/{dlltool,windres,windmc}*
   rm ${pkgdir}/usr/lib/lib{bfd,opcodes}.so
 }

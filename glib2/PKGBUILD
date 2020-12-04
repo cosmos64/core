@@ -1,64 +1,50 @@
 
-pkgbase=glib2
-pkgname=('glib2' 'glib2-docs')
-pkgver=2.50.1
-_pkgver=2.50
+pkgname=glib2
+pkgver=2.66.3
+_pkgver=2.66
 pkgrel=1
 pkgdesc="Common C routines used by GTK+ and other libs"
-url="http://www.gtk.org/overview.php"
+url="https://www.gtk.org/"
 arch=('x86_64')
-makedepends=('pkg-config' 'python3' 'libxslt' 'docbook-xml' 'pcre' 'libffi' 'elfutils')
-source=("http://ftp.gnome.org/pub/GNOME/sources/glib/${_pkgver}/glib-${pkgver}.tar.xz"
-        'revert-warn-glib-compile-schemas.patch'
+license=('LGPL')
+depends=('pcre' 'libffi')
+makedepends=('pkg-config' 'python3' 'libxslt' 'docbook-xml' 'elfutils' 'meson' 'ninja')
+options=('!docs' '!libtool' '!emptydirs')
+conflicts=('glib2-docs')
+provides=('glib2-docs')
+source=("https://ftp.gnome.org/pub/GNOME/sources/glib/${_pkgver}/glib-${pkgver}.tar.xz"
         'gio-querymodules.hook'
-        'glib-compile-schemes.hook')
-md5sums=('6baee4d7e3b1ec791b4ced93976365ee'
-         '3265d1afbcf1f5f308e26c3f9f6ca899'
-         'a52ea506b5cf162a4f72d09cc33fae50'
-         '9e25d7de10bc4dc105f171e9ae46ef69')
+        'glib-compile-schemes.hook'
+        'revert_wakeups.patch')
+sha256sums=('79f31365a99cb1cc9db028625635d1438890702acde9e2802eae0acebcf7b5b1'
+            '557c88177f011ced17bdeac1af3f882b2ca33b386a866fdf900b35f927a2bbe8'
+            '64ae5597dda3cc160fc74be038dbe6267d41b525c0c35da9125fbf0de27f9b25'
+            '05635ffbeb5875fc5cb4adb4c8c85450693c36fc15e4c85f2f04fdbaf7e9d1e8')
 
 prepare() {
   cd glib-${pkgver}
   
-  patch -Rp1 -i ../revert-warn-glib-compile-schemas.patch
+  #patch -p1 -i ../revert_wakeups.patch
 }
   
 build() {
-  cd glib-${pkgver}
+  mkdir -p build
+  cd build
   
-  PYTHON=/usr/bin/python3 ./configure --prefix=/usr --libdir=/usr/lib \
-      --sysconfdir=/etc \
-      --with-pcre=system \
-      --disable-fam
-  make
+  meson ../glib-${pkgver} \
+    --prefix=/usr \
+    --buildtype=release \
+    -D man=true \
+    -D selinux=disabled
+  ninja
 }
 
-package_glib2() {
-  depends=('pcre' 'libffi')
-  options=('!docs' '!libtool' '!emptydirs')
-  license=('LGPL')
-
-  cd glib-${pkgver}
-  make completiondir=/usr/share/bash-completion/completions DESTDIR=${pkgdir} install
-
-  for _i in ${pkgdir}/usr/share/bash-completion/completions/*; do
-      chmod -x "$_i"
-  done
+package() {
+  cd build
+  DESTDIR=${pkgdir} ninja install
   
   install -dm755 ${pkgdir}/usr/share/libalpm/hooks/
   install -m644 ../glib-compile-schemes.hook ${pkgdir}/usr/share/libalpm/hooks/
   install -m644 ../gio-querymodules.hook ${pkgdir}/usr/share/libalpm/hooks/
 }
 
-package_glib2-docs() {
-  pkgdesc="Documentation for glib2"
-  license=('custom')
-  options=('docs' '!emptydirs')
-  
-  cd glib-${pkgver}/docs
-  make DESTDIR=${pkgdir} install
-  install -m755 -d ${pkgdir}/usr/share/licenses/glib2-docs
-  install -m644 reference/COPYING ${pkgdir}/usr/share/licenses/glib2-docs/
-
-  rm -rf ${pkgdir}/usr/share/man
-}

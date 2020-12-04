@@ -1,20 +1,23 @@
 
 pkgname=xfsprogs
-pkgver=4.8.0
-_pkgver=4.8.0
+pkgver=5.9.0
+_pkgver=5.9.0
 pkgrel=1
 pkgdesc="XFS filesystem utilities"
 arch=('x86_64')
 license=('LGPL')
-url="http://xfs.org/index.php/Main_Page"
+url="https://xfs.org/index.php/Main_Page"
 groups=('base')
 depends=('util-linux')
 options=('!makeflags' '!libtool')
-source=("https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/${pkgname}-${_pkgver}.tar.xz")
-md5sums=('4f047bc9a28b48a95c6db0ad5ce4dbcb')
+source=("https://www.kernel.org/pub/linux/utils/fs/xfs/xfsprogs/${pkgname}-${_pkgver}.tar.xz"
+        'sparse_inode.patch')
+sha256sums=('bc5c805596bc609a18dc1f1b4ed6a2821dba9f47408ec00e7799ceea1b2097f1'
+            'eacd18a5c389f87e5d7817873d8ebac219f2179608bed0ade4c0b813d790e72d')
 
 build() {
   cd ${pkgname}-${_pkgver}
+  #patch -R -p1 -i ${srcdir}/sparse_inode.patch
   
   export OPTIMIZER="-march=${CARCH/_/-} -O1"
   export DEBUG=-DNDEBUG

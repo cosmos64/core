@@ -1,36 +1,33 @@
 
 pkgname=git
-pkgver=2.10.2
+pkgver=2.29.2
 pkgrel=1
 pkgdesc="Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency."
 arch=('x86_64')
-url="http://git-scm.com/"
+url="https://git-scm.com/"
 license=('GPL2')
-depends=('curl' 'expat>=2.0' 'perl-error' 'perl' 'pcre')
-makedepends=('python2' 'emacs')
+depends=('curl' 'expat' 'perl-error' 'perl' 'pcre2')
+makedepends=('python3')
 optdepends=('tk: gitk and git gui'
-            'python2: various helper scripts'
             'subversion: git svn')
 #install="git.install"
 source=("https://www.kernel.org/pub/software/scm/git/git-${pkgver}.tar.xz"
         "https://www.kernel.org/pub/software/scm/git/git-manpages-${pkgver}.tar.xz"
         'git-daemon@.service'
         'git-daemon.socket')
-md5sums=('3cd1dca37be60668f482545716923b72'
-         '6dc2a09d58a7aea20329b56a1efcb058'
-         '042524f942785772d7bd52a1f02fe5ae'
-         'f67869315c2cc112e076f0c73f248002')
+sha256sums=('f2fc436ebe657821a1360bcd1e5f4896049610082419143d60f6fa13c2f607c1'
+            'e2d44a2a30b9d43a770262f1328b77df2f532f16c2dcd235655e5c9bd39bd792'
+            '3bc3250d9e04b05c41975c01f85f512d3386d60b41475cbc7292bc88148852f6'
+            'ac4c90d62c44926e6d30d18d97767efc901076d4e0283ed812a349aece72f203')
 
 build() {
   cd ${pkgname}-${pkgver}
   
-  make prefix=/usr gitexecdir=/usr/lib/git-core \
-       USE_LIBPCRE=1 \
+  make prefix=/usr \
+       gitexecdir=/usr/lib/git-core \
+       USE_LIBPCRE2=1 \
        NO_CROSS_DIRECTORY_HARDLINKS=1 \
        all
-
-  cd contrib/emacs
-  make prefix=/usr
 }
 
 check() {
@@ -41,8 +38,9 @@ check() {
   #jobs='-j1'
   mkdir -p /dev/shm/git-test
   
-  make prefix=/usr gitexecdir=/usr/lib/git-core \
-       USE_LIBPCRE=1 \
+  make prefix=/usr \
+       gitexecdir=/usr/lib/git-core \
+       USE_LIBPCRE1=1 \
        NO_CROSS_DIRECTORY_HARDLINKS=1 \
        NO_SVN_TESTS=y \
        DEFAULT_TEST_TARGET=prove \
@@ -53,8 +51,9 @@ check() {
 
 package() {
   cd ${pkgname}-${pkgver}
-  make prefix=/usr gitexecdir=/usr/lib/git-core \
-       USE_LIBPCRE=1 \
+  make prefix=/usr \
+       gitexecdir=/usr/lib/git-core \
+       USE_LIBPCRE1=1 \
        NO_CROSS_DIRECTORY_HARDLINKS=1 \
        INSTALLDIRS=vendor DESTDIR=${pkgdir} install 
 
@@ -66,10 +65,6 @@ package() {
   install -m644 ./contrib/completion/git-prompt.sh ${pkgdir}/usr/share/git/git-prompt.sh
   # more contrib stuff
   cp -a ./contrib/* ${pkgdir}/usr/share/git/
-
-  # emacs interface
-  cd contrib/emacs
-  make prefix=/usr DESTDIR=${pkgdir} install
 
   # manpages
   for mansect in man1 man5 man7; do

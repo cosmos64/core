@@ -1,28 +1,29 @@
 
 pkgname=openssh
-pkgver=7.3p1
+pkgver=8.4p1
 pkgrel=1
 pkgdesc='Free version of the SSH connectivity tools'
 arch=('x86_64')
 license=('custom:BSD')
-url='http://www.openssh.org/portable.html'
+url='https://www.openssh.com/portable.html'
 backup=('etc/ssh/ssh_config' 'etc/ssh/sshd_config' 'etc/pam.d/sshd')
-depends=('krb5' 'openssl' 'libedit')
+depends=('krb5' 'openssl' 'libedit' 'ldns')
 makedepends=('linux-headers')
-source=("http://mirror.jmu.edu/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgver}.tar.gz"
+install=openssh.install
+source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgver}.tar.gz"
         'sshd.confd'
         'sshd.pam'
         'sshdgenkeys.service'
         'sshd.service'
         'sshd@.service'
         'sshd.socket')
-md5sums=('dfadd9f035d38ce5d58a3bf130b86d08'
-         'e2cea70ac13af7e63d40eb04415eacd5'
-         '9d71ea52cd15e9d7c172b7b71cb03bc0'
-         '234ac4883cc28c56a4c236867124c3e4'
-         '4bbc5818d93a2ad336d7191ed35c69f7'
-         'fdc4a47b4b8d0f0e2c395c9edcee8c14'
-         '76f52c66fb3193f301fe0a666e047ab1')
+sha1sums=('69305059e10a60693ebe6f17731f962c9577535c'
+          'ec102deb69cad7d14f406289d2fc11fee6eddbdd'
+          'd93dca5ebda4610ff7647187f8928a3de28703f3'
+          'cc1ceec606c98c7407e7ac21ade23aed81e31405'
+          'f9af4a442b804ab661cec0edb25dd76dee16d8d2'
+          'bd6eae36c7ef9efb7147778baad7858b81f2d660'
+          'e12fa910b26a5634e5a6ac39ce1399a132cf6796')
 
 build() {
 	cd ${pkgname}-${pkgver}
@@ -39,7 +40,7 @@ build() {
 		--with-xauth=/usr/bin/xauth \
 		--with-kerberos5=/usr \
 		--with-ssl-engine \
-		--with-libedit \
+		--with-ldns \
 		--with-pid-dir=/run \
 
 	make
@@ -48,6 +49,7 @@ build() {
 check() {
 	cd ${pkgname}-${pkgver}
 
+	# ssh-keygen for ssh-rsa failed, chroot issue
 	make tests ||
 	grep $USER /etc/passwd | grep -q /bin/false
 }

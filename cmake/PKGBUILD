@@ -1,18 +1,22 @@
 
 pkgname=cmake
-pkgver=3.6.3
-pkgrel=1
+pkgver=3.19.1
+_pkgver=3.19
+pkgrel=2
 pkgdesc="A cross-platform open-source make system"
 arch=('x86_64')
 license=('custom')
-url="http://www.cmake.org"
-depends=('curl' 'libarchive' 'shared-mime-info')
+url="https://www.cmake.org"
+depends=('curl' 'libarchive' 'shared-mime-info' 'libuv')
 makedepends=('qt5-base')
-source=("http://www.cmake.org/files/v3.6/${pkgname}-${pkgver}.tar.gz")
-md5sums=('b62fc10072cd906160865b9e74ce228f')
+source=("https://www.cmake.org/files/v${_pkgver}/${pkgname}-${pkgver}.tar.gz")
+#source=("https://github.com/Kitware/CMake/releases/download/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('1d266ea3a76ef650cdcf16c782a317cb4a7aa461617ee941e389cb48738a3aba')
 
 build() {
   cd ${pkgname}-${pkgver}
+  # set default libdir to lib with cmake > 3.16
+  sed -i 's|/etc/arch-release|/etc/KaOS-release|' Modules/GNUInstallDirs.cmake
 
   ./bootstrap --prefix=/usr \
     --mandir=/share/man \
@@ -20,6 +24,7 @@ build() {
     --system-libs \
     --qt-gui \
     --no-system-jsoncpp \
+    --no-system-librhash \
     --parallel=$(/usr/bin/getconf _NPROCESSORS_ONLN)
   make
 }

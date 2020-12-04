@@ -2,51 +2,49 @@
 pkgbase=linux-next
 pkgname=('linux-next' 'linux-next-headers' 'linux-next-docs') 
 _kernelname=${pkgname#linux}
-_basekernel=4.8
-_srcname=linux-4.8
-pkgver=4.8.6
+_basekernel=5.9
+_srcname=linux-5.9
+pkgver=5.9.12
 pkgrel=1
 arch=('x86_64')
-url="http://www.kernel.org/"
+url="https://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'intel-ucode')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'intel-ucode' 'elfutils' 'cpio')
 options=('!strip')
-source=("https://www.kernel.org/pub/linux/kernel/v4.x/${_srcname}.tar.xz"
-#source=("https://www.kernel.org/pub/linux/kernel/v4.x/testing/linux-4.8-rc8.tar.xz"
-        "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
+#source=("https://git.kernel.org/torvalds/t/linux-5.8-rc7.tar.gz"
+        "https://cdn.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         # the main kernel config files
         'config'
         #aufs patches
-        'aufs4-loopback.patch'
-        'aufs4-base.patch'
-        'aufs4-mmap.patch'
-        'aufs4-standalone.patch'
-        'aufs4-kbuild.patch'
-        'aufs4.patch'
+        'aufs5-loopback.patch'
+        'aufs5-base.patch'
+        'aufs5-mmap.patch'
+        'aufs5-standalone.patch'
+        'aufs5-kbuild.patch'
+        'aufs5.patch'
         'config.aufs'
-        'lockdep-debug.patch'
         'tmpfs-idr.patch'
         'vfs-ino.patch'
         # standard config files for mkinitcpio ramdisk
         'linux-next.preset'
-        'change-default-console-loglevel.patch'
-        'i8042-fix-aliases.patch')
-md5sums=('c1af0afbd3df35c1ccdc7a5118cd2d07'
-         '666753363fd69ac2c1a94f4349a7197e'
-         '76def9d231bde05f04141f3eee6f2ded'
-         '7facf31341f95bf197b9b95aa3a07859'
-         '4bff74676c79e1803b19537e02a39cb6'
-         '481426eb4b9817d34b5ff56388152b18'
-         'd4bd9323b3f64c531c06307794e58f05'
-         '491da72491064082be5adc516d9ac410'
-         '19fb6b95e053a89a4c29745557227af0'
-         '260b2e47579140f61546f37d90e0b527'
-         '283a86c849bb9b6c38c112c964e13b78'
-         'dc8cb1e216d4d509b814ec25d934c4d7'
-         '9e8c1c9b95f748fdb51f0ab1ba55b257'
-         '7b2ca9cdb5555219f793b5a807b05870'
-         'a262bedf26f26b7698143fc23de98457'
-         '93dbf73af819b77f03453a9c6de2bb47')
+        '99-linux-next.hook'
+        "https://github.com/torvalds/linux/commit/e16c4790de39dc861b749674c2a9319507f6f64f.diff")
+md5sums=('0959d759fd19e146367221aff504ad91'
+         'aaf2ffea63191f35ca2a5a4a16dfb20f'
+         '3181aea27c9778b109b5ec99ac80d047'
+         'bf7d8e44e691120f69d0a435787f0686'
+         '40c647ff1d075383d58e06e321c929b5'
+         'c5fb72f6ee84e03a498b17d32aead1d9'
+         '0bbbfcd79faab78b1d1eec40a5ce0d50'
+         '9bee61d6f85e780bc0afa5ca71ae8558'
+         'e2974837dfb89ea0bc646e202bdcbc9c'
+         '180e55a128db2641e04374ce07d131a7'
+         'a86f3a1f52b0e7cf469bd86df4e2e71c'
+         '1ee5e72dabfc05954fd13eb1873ff2cb'
+         'e19be83ca72175a29b36d8ab08105050'
+         'ae97691ba50d387f3ab98585514e3b22'
+         'a71035252857af0cf5d84c591b919996')
 
 build() {
   cd "${srcdir}/linux-${_basekernel}"
@@ -57,27 +55,21 @@ build() {
   # add latest fixes from stable queue, if needed
   # http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git
 
-  # set DEFAULT_CONSOLE_LOGLEVEL to 4 (same value as the 'quiet' kernel param)
-  # remove this when a Kconfig knob is made available by upstream
-  # (relevant patch sent upstream: https://lkml.org/lkml/2011/7/26/227)
-  patch -p1 -i "${srcdir}/change-default-console-loglevel.patch"
-  
-  patch -p1 -i "${srcdir}/i8042-fix-aliases.patch"
-
   #aufs patches for Live:
-  patch -p1 -i "${srcdir}/aufs4.patch"
-  patch -p1 -i "${srcdir}/aufs4-base.patch"
-  patch -p1 -i "${srcdir}/aufs4-kbuild.patch"
-  patch -p1 -i "${srcdir}/aufs4-loopback.patch"
-  patch -p1 -i "${srcdir}/aufs4-mmap.patch"
-  patch -p1 -i "${srcdir}/aufs4-standalone.patch"
-  patch -p1 -i "${srcdir}/lockdep-debug.patch"
-  patch -p1 -i "${srcdir}/tmpfs-idr.patch"
-  patch -p1 -i "${srcdir}/vfs-ino.patch"
+  #patch -p1 -i "${srcdir}/aufs5.patch"
+  #patch -p1 -i "${srcdir}/aufs5-base.patch"
+  #patch -p1 -i "${srcdir}/aufs5-kbuild.patch"
+  ###patch -p1 -i "${srcdir}/aufs5-loopback.patch"
+  #patch -p1 -i "${srcdir}/aufs5-mmap.patch"
+  ###patch -p1 -i "${srcdir}/aufs5-standalone.patch"
+  ###patch -p1 -i "${srcdir}/tmpfs-idr.patch"
+  ###patch -p1 -i "${srcdir}/vfs-ino.patch"
+  # Nvidia 390xx & 5.8 needed
+  sed -i "s|EXPORT_PER_CPU_SYMBOL_GPL(radix_tree_preloads)|EXPORT_PER_CPU_SYMBOL(radix_tree_preloads)|g" lib/radix-tree.c
   
   cat "${srcdir}/config" > ./.config
 
-  cat "${srcdir}/config.aufs" >> ./.config
+  #cat "${srcdir}/config.aufs" >> ./.config
 
   if [ "${_kernelname}" != "" ]; then
     sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
@@ -102,27 +94,25 @@ build() {
 package_linux-next() {
   pkgdesc="The Linux Kernel and modules"
   depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
-  optdepends=('crda: to set the correct wireless channels of your country')
   provides=("linux=$pkgver")
   backup=("etc/mkinitcpio.d/${pkgname}.preset")
   install=linux-next.install
 
   cd "${srcdir}/linux-${_basekernel}"
 
-  KARCH=x86
-
   # get kernel version
   _kernver="$(make kernelrelease)"
 
   mkdir -p "${pkgdir}"/{lib/modules,lib/firmware,boot}
   make INSTALL_MOD_PATH="${pkgdir}" modules_install
-  cp arch/$KARCH/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgname}"
+  cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgname}"
 
   # add vmlinux
   install -D -m644 vmlinux "${pkgdir}/usr/src/linux-${_kernver}/vmlinux"
 
-  # install fallback mkinitcpio.conf file and preset file for kernel
+  # install fallback mkinitcpio preset file and pacman hook for kernel
   install -D -m644 "${srcdir}/linux-next.preset" "${pkgdir}/etc/mkinitcpio.d/linux-next.preset"
+  install -D -m644 "${srcdir}/99-linux-next.hook" "${pkgdir}/usr/share/libalpm/hooks/99-${pkgbase}.hook"
 
   # set correct depmod command for install
   sed \
@@ -169,8 +159,8 @@ package_linux-next-headers() {
 
   mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/include"
 
-  for i in acpi asm-generic config crypto drm generated linux math-emu \
-    media net pcmcia scsi sound trace uapi video xen; do
+  for i in acpi asm-generic config crypto drm generated keys linux math-emu \
+    media net pcmcia scsi rdma soc sound target trace uapi vdso video xen; do
     cp -a include/${i} "${pkgdir}/usr/src/linux-${_kernver}/include/"
   done
 
@@ -186,11 +176,11 @@ package_linux-next-headers() {
   chmod og-w -R "${pkgdir}/usr/src/linux-${_kernver}/scripts"
   mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/.tmp_versions"
 
-  mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/arch/${KARCH}/kernel"
+  mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/arch/x86/kernel"
 
-  cp arch/${KARCH}/Makefile "${pkgdir}/usr/src/linux-${_kernver}/arch/${KARCH}/"
+  cp arch/x86/Makefile "${pkgdir}/usr/src/linux-${_kernver}/arch/x86/"
 
-  cp arch/${KARCH}/kernel/asm-offsets.s "${pkgdir}/usr/src/linux-${_kernver}/arch/${KARCH}/kernel/"
+  cp arch/x86/kernel/asm-offsets.s "${pkgdir}/usr/src/linux-${_kernver}/arch/x86/kernel/"
 
   # add headers for lirc package
   # pci
@@ -211,10 +201,6 @@ package_linux-next-headers() {
     cp -a drivers/media/i2c/${i}/*.h "${pkgdir}/usr/src/linux-${_kernver}/drivers/media/i2c/${i}"
   done
 
-  # add docbook makefile
-  install -D -m644 Documentation/DocBook/Makefile \
-    "${pkgdir}/usr/src/linux-${_kernver}/Documentation/DocBook/Makefile"
-
   # add dm headers
   mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/drivers/md"
   cp drivers/md/*.h "${pkgdir}/usr/src/linux-${_kernver}/drivers/md"
@@ -228,9 +214,6 @@ package_linux-next-headers() {
   cp net/mac80211/*.h "${pkgdir}/usr/src/linux-${_kernver}/net/mac80211/"
 
   # add dvb headers for external modules
-  mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/drivers/media/dvb-core"
-  cp drivers/media/dvb-core/*.h "${pkgdir}/usr/src/linux-${_kernver}/drivers/media/dvb-core/"
-  # and...
   mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/include/config/dvb/"
   cp include/config/dvb/*.h "${pkgdir}/usr/src/linux-${_kernver}/include/config/dvb/"
 
@@ -252,14 +235,20 @@ package_linux-next-headers() {
   mkdir -p "${pkgdir}/usr/src/linux-${_kernver}/mm"
   cp fs/xfs/libxfs/xfs_sb.h "${pkgdir}/usr/src/linux-${_kernver}/fs/xfs/libxfs/xfs_sb.h"
 
-  #aufs4-util need
-  sed -i "s:__user::g" "${pkgdir}/usr/src/linux-${_kernver}/include/uapi/linux/aufs_type.h"
+  #aufs5-util need
+  ##sed -i "s:__user::g" "${pkgdir}/usr/src/linux-${_kernver}/include/uapi/linux/aufs_type.h"
 
   # copy in Kconfig files
   for i in `find . -name "Kconfig*"`; do
     mkdir -p "${pkgdir}"/usr/src/linux-${_kernver}/`echo ${i} | sed 's|/Kconfig.*||'`
     cp ${i} "${pkgdir}/usr/src/linux-${_kernver}/${i}"
   done
+  # Removing documentation, part of docs package
+  rm -r "${pkgdir}"/usr/src/linux-${_kernver}/Documentation
+  
+  # save signing files, needed for modules signing
+  cp certs/signing_key.pem "/$HOME/signing_key.pem"
+  cp certs/signing_key.x509 "/$HOME/signing_key.x509"
 
   chown -R root.root "${pkgdir}/usr/src/linux-${_kernver}"
   find "${pkgdir}/usr/src/linux-${_kernver}" -type d -exec chmod 755 {} \;
@@ -275,6 +264,9 @@ package_linux-next-headers() {
         /usr/bin/strip ${STRIP_BINARIES} "${binary}";;
     esac
   done
+  
+  # add objtool, nvidia needed
+  install -Dt "${pkgdir}/usr/src/linux-${_kernver}/tools/objtool" tools/objtool/objtool
 
   # remove unneeded architectures
   rm -rf "${pkgdir}"/usr/src/linux-${_kernver}/arch/{alpha,arm,arm26,arm64,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,xtensa}
@@ -291,11 +283,9 @@ package_linux-next-docs() {
   find "${pkgdir}" -type f -exec chmod 444 {} \;
   find "${pkgdir}" -type d -exec chmod 755 {} \;
 
-  # remove a file already in linux package
-  rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/DocBook/Makefile"
-  # remove a files already in linux-headers
-  rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.recursion-issue-01"
-  rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.recursion-issue-02"
-  rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.select-break"
+  # remove files already in linux-headers
+  #rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.recursion-issue-01"
+  #rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.recursion-issue-02"
+  #rm -f "${pkgdir}/usr/src/linux-${_kernver}/Documentation/kbuild/Kconfig.select-break"
   
 }

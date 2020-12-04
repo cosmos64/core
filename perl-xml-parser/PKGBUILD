@@ -1,35 +1,36 @@
 
 pkgname=perl-xml-parser
-_realname=XML-Parser
-pkgver=2.44
-pkgrel=3
+_pkgname=XML-Parser
+pkgver=2.46
+_pkgver=2.46
+pkgrel=1
 pkgdesc="Expat-based XML parser module for perl"
 arch=('x86_64')
 license=('GPL' 'PerlArtistic')
-url="http://search.cpan.org/dist/${_realname}/"
+url="https://metacpan.org/release/XML-Parser"
 depends=('perl' 'expat')
 replaces=('perlxml')
 provides=("perlxml=${pkgver}")
 conflicts=('perlxml')
 options=('!emptydirs')
-source=("http://search.cpan.org/CPAN/authors/id/T/TO/TODDR/${_realname}-${pkgver}.tar.gz")
-md5sums=('af4813fe3952362451201ced6fbce379')
+source=("https://cpan.metacpan.org/authors/id/T/TO/TODDR/${_pkgname}-${_pkgver}.tar.gz")
+md5sums=('80bb18a8e6240fcf7ec2f7b57601c170')
 
 build() {
-  cd "${srcdir}/${_realname}-${pkgver}"
+  cd ${_pkgname}-${_pkgver}
 
   perl Makefile.PL INSTALLDIRS=vendor
   make
 }
 
 check() {
-  cd "${srcdir}/${_realname}-${pkgver}"
+  cd ${_pkgname}-${_pkgver}
   
   make test
 }
 
 package() {
-  cd "${srcdir}/${_realname}-${pkgver}"
+  cd ${_pkgname}-${_pkgver}
   
-  make install DESTDIR="${pkgdir}"
+  make install DESTDIR=${pkgdir}
 }

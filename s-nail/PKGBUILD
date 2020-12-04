@@ -1,31 +1,30 @@
 
 pkgname=s-nail
-pkgver=14.8.14
+pkgver=14.9.19
 pkgrel=1
 pkgdesc="Mail processing system and commandline utility for sending email"
 arch=('x86_64')
 url="https://www.sdaoden.eu/code.html#s-naill"
 license=('BSD')
 groups=('base')
-depends=('openssl' 'krb5')
+depends=('openssl' 'krb5' 'libidn2')
 optdepends=('postfix: for sending mail')
 backup=('etc/mail.rc')
 conflicts=('mailx')
 replaces=('mailx')
 provides=('mailx')
-source=("http://www.sdaoden.eu/downloads/${pkgname}-${pkgver}.tar.xz")
-md5sums=('f6be410b7894f8b304284288f4a8cf04')
+source=("https://www.sdaoden.eu/downloads/${pkgname}-${pkgver}.tar.xz")
+sha256sums=('84f249a233a4592cf0c0bda9644c5b2d12e63a4807c0e292c13ef5068d3ca2bd')
 
 build() {
   cd ${pkgname}-${pkgver}
 
-  make PREFIX=/usr \
-       SYSCONFDIR=/etc \
-       MAILSPOOL=/var/spool/mail \
-       MANDIR=/usr/share/man \
-       SID= NAIL=mail \
-       WANT_AUTOCC=0 \
-       LIBEXECDIR=/usr/lib \
+  make VAL_PREFIX=/usr \
+       VAL_SYSCONFDIR=/etc \
+       VAL_MAIL=/var/spool/mail \
+       VAL_LIBEXECDIR=/usr/lib \
+       VAL_SID= VAL_MAILX=mail \
+       OPT_AUTOCC=0 \
        config
 
   make build

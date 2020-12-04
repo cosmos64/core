@@ -1,15 +1,15 @@
 
 pkgname=iptables
-pkgver=1.6.0
-pkgrel=2
+pkgver=1.8.6
+pkgrel=1
 pkgdesc="A Linux kernel packet control tool"
 arch=('x86_64')
 license=('GPL2')
-url='http://www.netfilter.org/projects/iptables/index.html'
+url='https://www.netfilter.org/projects/iptables/index.html'
 depends=('glibc' 'bash')
 makedepends=('linux-api-headers' 'chrpath')
 options=('!libtool')
-source=("http://www.netfilter.org/projects/iptables/files/${pkgname}-${pkgver}.tar.bz2"
+source=("https://www.netfilter.org/projects/iptables/files/${pkgname}-${pkgver}.tar.bz2"
         'empty.rules'
         'simple_firewall.rules'
         'empty-filter.rules'
@@ -19,21 +19,24 @@ source=("http://www.netfilter.org/projects/iptables/files/${pkgname}-${pkgver}.t
         'empty-security.rules'
         'iptables.service'
         'ip6tables.service'
-        'iptables-flush')
-md5sums=('27ba3451cb622467fc9267a176f19a31'
-         '14186bbafe21bb0638c0cb8e0903c829'
-         '88fe330e810bb89b3aa08747bae3e3f9'
-         '3ae6e25f397195611bab943945ff31ee'
-         '60a90471364984ef43fa750d02b19e6e'
-         '07f769473723984ecd1d13ef841c0222'
-         '0e202e7eaab6692d2dcf9ea04766db5c'
-         '07423e206c5c7a61689eebf12a1dbe52'
-         '0b63db98a863cb2050e3b4596605a8ca'
-         'af1ec8be985119b2a3e1b16f1a7f5968'
-         'a19e0630d200f066522f0baef815dd75')
+        'iptables-flush'
+        'nft.patch')
+sha256sums=('a0f4fe0c3eb8faa5bd9c8376d132f340b9558e750c91deb2d5028aa3d0047767'
+            '630d774f089703c2c7370db6d7c188dae25d00c26feaa3d3de8eb52519033948'
+            '9e83d7ae39d31881790f814930d44acbaeab1520adb2fb4fcb80f0bbfab174b9'
+            '09b90da35c2c8cb0fbda63b300f06d2387a102ca53a40980ef0b49829e249528'
+            '92755648f456e235d17a8faeb5f46d27af66eb4db10ea4bac0abd3e35e2dae07'
+            '52bd70dff3e1e1a64127ad7ed86840834b79756c3bdb6947b7c6279ffe95dd48'
+            '5768a471c0559848635c39d270e456bfa5c43eda65f5f6f666fea2d277183a37'
+            '91161a73f323016a9efc5eabd16243d20f8ca2467995cf0eabfb95f845090121'
+            '8c0dfd864e2d4bc31fa4ea29d6b2f11c72e51374ee4106d98d600a24660e13f7'
+            'f92b6fa2d90f04d9e8c2b0fff2ceb26a26042606d9fe95348d7f6ba26c837464'
+            '5975b581632a6c90cf33273870bf8422b462aa380454bf8ed6a8327dbd868d03'
+            '6335009b134bda21012fadd60e396b9bb649bdebae9b524474d6ac620f78544f')
 
 build() {
   cd ${pkgname}-${pkgver}
+  #patch -p1 -i ${srcdir}/nft.patch
 
   rm include/linux/types.h
 

@@ -1,34 +1,40 @@
 
 pkgname=kbd
-pkgver=2.0.3
-pkgrel=2
+pkgver=2.3.0
+pkgrel=1
 pkgdesc="Keytable files and keyboard utilities"
 arch=('x86_64')
 url="http://www.kbd-project.org"
 license=('GPL')
 depends=('glibc' 'pam')
 makedepends=('check')
-source=("ftp://ftp.kernel.org/pub/linux/utils/kbd/${pkgname}-${pkgver}.tar.gz")
-md5sums=('15ccfead0cdd3b5e74d875348b184ded')
+source=("https://mirrors.edge.kernel.org/pub/linux/utils/kbd/${pkgname}-${pkgver}.tar.xz"
+        'kbd2.2.0.patch')
+sha256sums=('685056143cb8effd0a1d44b5c391eb50d80dcfd014b1a4d6e2650a28d61cb82a'
+            'b5bf6a9d7a1374f65f8373a3f4b89d0e19b809e889123fb58d33eee17eeb376c')
 
 build() {
-  cd ${startdir}/src/${pkgname}-${pkgver}
+  cd ${pkgname}-${pkgver}
+  # kbd 2.2.0 not compatible with encryption/loadkmap
+  #patch -p1 -i ${srcdir}/kbd2.2.0.patch
 
-  # rename keymap files with the same names
-  # this should be removed when upstream adopts the change
+  # Rename conflicting keymaps to have unique names
   mv data/keymaps/i386/qwertz/cz{,-qwertz}.map
   mv data/keymaps/i386/olpc/es{,-olpc}.map
   mv data/keymaps/i386/olpc/pt{,-olpc}.map
-  mv data/keymaps/i386/dvorak/no{,-dvorak}.map
+  #mv data/keymaps/i386/dvorak/no{,-dvorak}.map
   mv data/keymaps/i386/fgGIod/trf{,-fgGIod}.map
   mv data/keymaps/i386/colemak/{en-latin9,colemak}.map
 
-  ./configure --prefix=/usr --datadir=/usr/share/kbd --mandir=/usr/share/man
+  ./configure --prefix=/usr \
+    --datadir=/usr/share/kbd \
+    --mandir=/usr/share/man
+    
   make KEYCODES_PROGS=yes RESIZECONS_PROGS=yes
 }
 
 package() {
-  cd ${srcdir}/${pkgname}-${pkgver}
+  cd ${pkgname}-${pkgver}
   
   make KEYCODES_PROGS=yes RESIZECONS_PROGS=yes DESTDIR=${pkgdir} install
 }

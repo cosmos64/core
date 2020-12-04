@@ -1,54 +1,49 @@
 
 pkgname=pacman
-pkgver=5.0.1
-pkgrel=5
+pkgver=5.2.2
+pkgrel=3
 pkgdesc="A library-based package manager with dependency support"
 arch=('x86_64')
-url="http://www.archlinux.org/pacman/"
+url="https://www.archlinux.org/pacman/"
 license=('GPL')
 groups=('base')
 depends=('bash' 'glibc' 'libarchive' 'curl' 'gpgme' 'pacman-mirrorlist')
 makedepends=('asciidoc')
-checkdepends=('python2' 'fakechroot')
+checkdepends=('python3' 'fakechroot')
 backup=(etc/pacman.conf etc/makepkg.conf)
 options=('!libtool')
-#install=pacman.install
-source=("https://sources.archlinux.org/other/pacman/$pkgname-$pkgver.tar.gz"
+source=("https://sources.archlinux.org/other/pacman/${pkgname}-${pkgver}.tar.gz"
         'pacman.conf'
-        'makepkg.conf')
-md5sums=('377a2664d6007d72d6d8a126add83bcf'
-         '5600ceea45ce0de5262a0c37f42ea28b'
-         '9968e22a8508545351589159ea76b3b7')
+        'makepkg.conf'
+        'file5.33.patch')
+md5sums=('3a9b078a83996a3272844807b91959c6'
+         '4a51211c3d54e419a6b13e6ef3e08b00'
+         'fc3d3b54160e97d482deea535288dbe4'
+         '9eb04bd318524d87f22c8ce7fa47693f')
 
 build() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
+  #patch -p1 -i ${srcdir}/file5.33.patch
   
-  ./configure --prefix=/usr --sysconfdir=/etc \
-    --localstatedir=/var --enable-doc \
+  ./configure --prefix=/usr \
+    --sysconfdir=/etc \
+    --localstatedir=/var \
+    --enable-doc \
     --with-scriptlet-shell=/bin/bash \
     --with-ldconfig=/bin/ldconfig
   make V=1
-  make -C contrib
 }
 
 check() {
-  make -C $pkgname-$pkgver check
+  make -C ${pkgname}-${pkgver} check
 }
 
 package() {
-  cd $pkgname-$pkgver
-  make DESTDIR=$pkgdir install
-  make DESTDIR=$pkgdir -C contrib install
+  cd ${pkgname}-${pkgver}
+  make DESTDIR=${pkgdir} install
 
-  mkdir -p $pkgdir/etc
-  install -m644 $srcdir/pacman.conf $pkgdir/etc/pacman.conf
-  install -m644 $srcdir/makepkg.conf $pkgdir/etc/
-
-  # completion files
-  install -Dm644 contrib/bash_completion $pkgdir/usr/share/bash-completion/completions/pacman
-  for f in makepkg pacman-key; do
-    ln -s pacman "$pkgdir/usr/share/bash-completion/completions/$f"
-  done
-  install -Dm644 contrib/zsh_completion $pkgdir/usr/share/zsh/site-functions/_pacman
+  mkdir -p ${pkgdir}/etc
+  install -m644 $srcdir/pacman.conf ${pkgdir}/etc/pacman.conf
+  install -m644 $srcdir/makepkg.conf ${pkgdir}/etc/
 }
 

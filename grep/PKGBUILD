@@ -1,19 +1,21 @@
 
 pkgname=grep
-pkgver=2.26
+pkgver=3.6
 pkgrel=1
 pkgdesc="A string search utility"
 arch=('x86_64')
 license=('GPL3')
-url="http://www.gnu.org/software/grep/grep.html"
+url="https://www.gnu.org/software/grep/grep.html"
 groups=('base')
 depends=('glibc' 'pcre' 'sh')
 makedepends=('texinfo')
-source=("ftp://ftp.gnu.org/gnu/grep/${pkgname}-${pkgver}.tar.xz")
-md5sums=('afdd61c7221434722671baf002ac9267')
+source=("https://ftp.gnu.org/gnu/grep/${pkgname}-${pkgver}.tar.xz")
+md5sums=('f47fe27049510b2249dba7f862ac1b51')
 
 build() {
   cd ${pkgname}-${pkgver}
+  # http://lists.gnu.org/archive/html/bug-grep/2017-02/msg00008.html
+  #patch -p1 -i ${srcdir}/?id=6e4c8728f0e75af57f839625d0bd51b0a02d091e
 
   ./configure --prefix=/usr --without-included-regex
   make

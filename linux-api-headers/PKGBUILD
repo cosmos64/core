@@ -1,20 +1,20 @@
 # toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
 
 pkgname=linux-api-headers
-pkgver=4.6.3
-_basever=4.6
+pkgver=5.9
+_basever=5.9
 pkgrel=1
 pkgdesc="Kernel headers sanitized for use in userspace"
 arch=('x86_64')
-url="http://www.gnu.org/software/libc"
+url="https://www.gnu.org/software/libc"
 license=('GPL2')
 provides=("kernel-headers=${pkgver}")
 conflicts=('kernel-headers')
 replaces=('kernel-headers')
-source=("http://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basever}.tar.xz"
-	"http://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz")
-md5sums=('d2927020e24a76da4ab482a8bc3e9ef3'
-         '0d59cb81eb7c0daf0f5019deda65af90')
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basever}.tar.xz"
+        "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz")
+md5sums=('0959d759fd19e146367221aff504ad91'
+         'ae82f426cd3a08e3009a1ae039c08866')
 
 build() {
   cd ${srcdir}/linux-${_basever}
@@ -28,9 +28,6 @@ package() {
   cd ${srcdir}/linux-${_basever}
   make INSTALL_HDR_PATH=${pkgdir}/usr headers_install
 
-  # use headers from libdrm
+  # mostly duplicate headers from libdrm
   rm -r ${pkgdir}/usr/include/drm
-  
-  # clean-up unnecessary files generated during install
-  find ${pkgdir} \( -name .install -o -name ..install.cmd \) -delete
 }

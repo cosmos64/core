@@ -1,24 +1,22 @@
 
 pkgname=libtasn1
-pkgver=4.9
+pkgver=4.16.0
 pkgrel=1
 pkgdesc="The ASN.1 library used in GNUTLS"
 arch=('x86_64')
 license=('GPL3' 'LGPL')
-url="http://www.gnu.org/software/libtasn1/"
+url="https://www.gnu.org/software/libtasn1/"
 depends=('glibc' 'texinfo')
 checkdepends=('valgrind')
 options=('!libtool')
-source=("ftp://ftp.gnu.org/gnu/libtasn1/${pkgname}-${pkgver}.tar.gz")
-md5sums=('3018d0f466a32b66dde41bb122e6cab6')
+source=("https://ftp.gnu.org/gnu/libtasn1/${pkgname}-${pkgver}.tar.gz")
+md5sums=('531208de3729d42e2af0a32890f08736')
 
 build() {
   cd ${pkgname}-${pkgver}
   
-  ./configure --prefix=/usr \
-      --with-packager=KaOS \
-      --with-packager-bug-reports="https://github.com/KaOSx/core/issues" \
-      --with-packager-version=${pkgver}-${pkgrel}
+  ./configure --prefix=/usr 
+      
   make
 }
 

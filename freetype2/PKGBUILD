@@ -1,23 +1,25 @@
 
 pkgname=freetype2
-pkgver=2.7
+pkgver=2.10.4
 pkgrel=1
 pkgdesc="TrueType font rendering library"
 arch=('x86_64')
 license=('GPL')
-url="http://freetype.sourceforge.net/index2.html"
-depends=('zlib' 'sh' 'bzip2')
+url="https://www.freetype.org/"
+depends=('zlib' 'sh' 'bzip2' 'libpng')
 options=('!libtool')
-source=("http://sourceforge.net/projects/freetype/files/freetype2/${pkgver}/freetype-${pkgver}.tar.bz2"
-        'freetype-2.3.0-enable-spr.patch')
-md5sums=('be4601619827b7935e1d861745923a68'
-         '0e968faa7c82747b0d4816749b5baad1')
+source=("https://sourceforge.net/projects/freetype/files/freetype2/${pkgver}/freetype-${pkgver}.tar.xz"
+        'freetype-2.3.0-enable-spr.patch'
+        'freetype-config')
+md5sums=('0e6c0e9b218be3ba3e26e1d23b1c80dd'
+         'd525b1bb00ee453f6234e3e1c2cfad43'
+         '651688627a0ff9c2ceaecfd2fd354098')
 
 build() {
   cd freetype-${pkgver}
   patch -p1 -i ${srcdir}/freetype-2.3.0-enable-spr.patch
 
-  ./configure --prefix=/usr --disable-static --without-png
+  ./configure --prefix=/usr --disable-static
   make
 }
 
@@ -31,6 +33,8 @@ package() {
   cd freetype-${pkgver}
 
   make DESTDIR=${pkgdir} install
+  #add obsolete freetype-config to make sure all packages can still use freetype
+  install -D -m755 ${srcdir}/freetype-config ${pkgdir}/usr/bin/freetype-config
 }
 
 

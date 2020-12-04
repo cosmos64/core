@@ -1,31 +1,33 @@
 
 pkgname=gobject-introspection
-pkgver=1.50.0
-_pkgver=1.50
+pkgver=1.66.1
+_pkgver=1.66
 pkgrel=1
 pkgdesc="Introspection system for GObject-based libraries"
-url="https://live.gnome.org/GObjectInstrospection"
+url="https://wiki.gnome.org/Projects/GObjectIntrospection"
 arch=('x86_64')
 license=('LGPL' 'GPL')
 depends=('libffi' 'glib2' 'python3')
-makedepends=('cairo')
+makedepends=('cairo' 'meson' 'ninja')
 options=('!libtool')
-source=("http://ftp.gnome.org/pub/gnome/sources/${pkgname}/${_pkgver}/${pkgname}-${pkgver}.tar.xz")
-md5sums=('5af8d724f25d0c9cfbe6df41b77e5dc0')
+source=("https://ftp.gnome.org/pub/gnome/sources/${pkgname}/${_pkgver}/${pkgname}-${pkgver}.tar.xz")
+sha256sums=('dd44a55ee5f426ea22b6b89624708f9e8d53f5cc94e5485c15c87cb30e06161d')
 
 
 build() {
-  cd ${pkgname}-${pkgver}
+  mkdir -p build
+  cd build
   
-  PYTHON=/usr/bin/python3 ./configure --prefix=/usr --disable-static
-  make
+  meson ../${pkgname}-${pkgver} \
+    --prefix=/usr \
+    --buildtype=release \
+    -D python=python3
+  ninja
 }
 
 package() {
-  cd ${pkgname}-${pkgver}
+  cd build
   
-  make DESTDIR=${pkgdir} install
-  
-    sed -i '1s|#!/usr/bin/env python$|&3|' ${pkgdir}/usr/lib/gobject-introspection/giscanner/*.py
+  DESTDIR=${pkgdir} ninja install
 }
 

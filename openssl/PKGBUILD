@@ -1,7 +1,7 @@
 
 pkgname=openssl
-pkgver=1.0.2.10
-_pkgver=1.0.2j
+pkgver=1.1.1.8
+_pkgver=1.1.1h
 pkgrel=1
 pkgdesc='The Open Source toolkit for Secure Sockets Layer and Transport Layer Security'
 arch=('x86_64')
@@ -12,50 +12,39 @@ optdepends=('ca-certificates')
 options=('!makeflags')
 backup=('etc/ssl/openssl.cnf')
 source=("https://www.openssl.org/source/${pkgname}-${_pkgver}.tar.gz"
-        'no-rpath.patch'
-        'ca-dir.patch'
-        'bctest'
-        'pod2mantest')
-md5sums=('96322138f0b69e61b7212bc53d5e912b'
-         'dc78d3d06baffc16217519242ce92478'
-         '3bf51be3a1bbd262be46dc619f92aa90'
-         'ca85ae891de94faa821c2c6f4dba7f5a'
-         '0811d285202cebe91003771475802b4f')
+        'ca-dir_openssl1.1.patch')
+sha256sums=('5c9ca8774bd7b03e5784f26ae9e9e6d749c9da2438545077e6b3d755a06595d9'
+            'd6dd76398e67f07640e49e7a6b0f0585801dcd6a031b72bf4d19938562512c4d')
 
 build() {
-	cd ${pkgname}-${_pkgver}
-	# add missing files to run bc test and install commands, 1.0.2e tar issue
-	#cp $srcdir/bctest test
-	#cp $srcdir/pod2mantest util
-	
-	openssltarget='linux-x86_64'
-	optflags='enable-ec_nistp_64_gcc_128'
+    cd ${pkgname}-${_pkgver}
 
-	patch -p0 -i $srcdir/no-rpath.patch
-	# set ca dir to /etc/ssl by default
-	patch -p0 -i $srcdir/ca-dir.patch
-	
-	./Configure --prefix=/usr --openssldir=/etc/ssl --libdir=lib \
-		shared zlib ${optflags} \
-		${openssltarget} \
-		-Wa,--noexecstack ${CFLAGS} ${LDFLAGS} \
+    # set ca dir to /etc/ssl by default
+    patch -p0 -i ${srcdir}/ca-dir_openssl1.1.patch
+            
+    ./Configure --prefix=/usr \
+        --openssldir=/etc/ssl \
+        --libdir=lib \
+        shared zlib enable-ec_nistp_64_gcc_128 \
+        linux-x86_64 \
+        -Wa,--noexecstack ${CFLAGS} ${LDFLAGS} \
 
-	make depend
-	make
+    make depend
+    make
 }
 
 check() {
-	cd ${pkgname}-${_pkgver}
-	# the test fails due to missing write permissions in /etc/ssl
-	# revert this patch for make test
-	patch -p0 -R -i ${srcdir}/ca-dir.patch
-	make test
-	patch -p0 -i ${srcdir}/ca-dir.patch
+    cd ${pkgname}-${_pkgver}
+    # the test fails due to missing write permissions in /etc/ssl
+    # revert this patch for make test
+    patch -p0 -R -i ${srcdir}/ca-dir_openssl1.1.patch
+    make test
+    patch -p0 -i ${srcdir}/ca-dir_openssl1.1.patch
 }
 
 package() {
-	cd ${pkgname}-${_pkgver}
-	make INSTALL_PREFIX=${pkgdir} MANDIR=/usr/share/man MANSUFFIX=ssl install
-	
-	install -D -m644 LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
+    cd ${pkgname}-${_pkgver}
+    make DESTDIR=${pkgdir} MANDIR=/usr/share/man MANSUFFIX=ssl install
+
+    install -D -m644 LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
 }

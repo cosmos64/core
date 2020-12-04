@@ -1,17 +1,18 @@
 
 pkgname=systemd
-pkgver=232
-pkgrel=1
+pkgver=246
+_pkgver=246
+pkgrel=2
 epoch=1
 pkgdesc="System and Session Manager"
 arch=('x86_64')
 url="http://www.freedesktop.org/wiki/Software/systemd"
 license=('GPL2' 'LGPL2.1')
 depends=('acl' 'bash' 'glibc' 'kmod' 'hwids' 'util-linux' 'kbd' 'libcap' 'libxslt' 'iptables'
-         'linux-api-headers' 'pam' 'xz' 'libgcrypt' 'dbus' 'libidn' 'lz4' 'python2-systemd' 'quota' 'libseccomp') # 'audit') 
-makedepends=('docbook-xsl' 'gperf' 'intltool' 'cryptsetup' 'libmicrohttpd' 'gnu-efi-libs')
-optdepends=('cryptsetup: required for encrypted block devices'
-            'libmicrohttpd: systemd-journal-gatewayd')
+         'linux-api-headers' 'pam' 'xz' 'libgcrypt' 'dbus' 'libidn2' 'lz4'
+         'quota' 'libseccomp' 'cryptsetup' 'pcre2') # 'audit') 
+makedepends=('docbook-xsl' 'gperf' 'intltool' 'libmicrohttpd' 'gnu-efi-libs' 'meson' 'ninja' 'python3-lxml')
+optdepends=('libmicrohttpd: systemd-journal-gatewayd')
 backup=(etc/dbus-1/system.d/org.freedesktop.systemd1.conf
         etc/dbus-1/system.d/org.freedesktop.hostname1.conf
         etc/dbus-1/system.d/org.freedesktop.login1.conf
@@ -30,7 +31,7 @@ provides=("udev=${pkgver}" 'gummiboot')
 groups=('base')
 install="systemd.install"
 options=('!libtool')
-source=("https://github.com/systemd/systemd/archive/v${pkgver}.tar.gz"
+source=("https://github.com/systemd/systemd/archive/v${_pkgver}.tar.gz"
         'initcpio-hook-udev'
         'initcpio-install-systemd'
         'initcpio-install-udev'
@@ -38,54 +39,73 @@ source=("https://github.com/systemd/systemd/archive/v${pkgver}.tar.gz"
         'KaOS.conf'
         'KaOS_fallback.conf'
         'splash.bmp'
-        'systemd-tmpfiles.hook')
-md5sums=('3e3a0b14050eff62e68be72142181730'
+        'systemd-tmpfiles.hook'
+        'boot_color.diff')
+md5sums=('a3e9efa72d0309dd26513a221cdff31b'
          'b2da235893d76ed6b810fa5e8d2afe67'
          'f422035c2a36b4fa51f4a369eccc01f4'
          'bde43090d4ac0ef048e3eaee8202a407'
          '30b74b38eaf1178bbc540bda9a24bfe2'
-         'eb444ae327472b98a65631ede777720a'
+         '8fe91c1336757a7e7564e23b4c2469ce'
          'b8d8ebeab17edbe91209e705cfc9e774'
          'd7eec59a2aaa54770d22ccfa52d0ac2b'
-         '7d5910d12fdfce56228a1aac8c3d618c')
+         '27f5023827fc6fc9361f524436855a1e'
+         'a59ceb44b57272d6cebaf86acda7d393')
 
-build() {
-  cd ${pkgname}-${pkgver}
-  #rm src/journal/audit_type-to-name.h
-  #rm src/udev/keyboard-keys-from-name.gperf
+prepare() {
+  cd ${pkgname}-${_pkgver}
   
   sed -i 's|Linux Boot Manager|Systemd Boot Manager|' src/boot/bootctl.c
+  # set systemd-boot colors
+  patch -p1 -i ${srcdir}/boot_color.diff
+}
+
+build() {
+  mkdir -p build
+  cd build
   
   NTP_SERVERS="0.north-america.pool.ntp.org 1.north-america.pool.ntp.org 2.north-america.pool.ntp.org 3.north-america.pool.ntp.org"
+  # cp locale-archive from /usr/lib/locale
+  #export LANG=en_US.UTF-8
   
-  ./autogen.sh
-  ./configure \
-      --libexecdir=/usr/lib \
-      --localstatedir=/var \
-      --sysconfdir=/etc \
-      --enable-split-usr \
-      --enable-lz4 \
-      --enable-efi \
-      --enable-gnuefi \
-      --disable-audit \
-      --disable-ima \
-      --disable-networkd \
-      --without-python \
-      --with-default-dnssec=no \
-      --without-kill-user-processes \
-      --with-ntp-servers="${NTP_SERVERS}"
-      #--with-firmware-path=/usr/lib/firmware/updates:/lib/firmware/updates:/usr/lib/firmware:/lib/firmware
-
-  make
+  meson ../${pkgname}-${_pkgver} \
+    --prefix=/usr \
+    --buildtype=release \
+    --libexecdir=/usr/lib \
+    -Dsplit-usr=true \
+    -Dsplit-bin=true \
+    -Drootprefix=/usr \
+    -Dlz4=true \
+    -Dpcre2=true \
+    -Defi=true \
+    -Dgnu-efi=true \
+    -Daudit=false \
+    -Dima=false \
+    -Dlibidn2=true \
+    -Dnetworkd=false \
+    -Ddefault-dnssec=no \
+    -Ddefault-kill-user-processes=false \
+    -Dntp-servers="${NTP_SERVERS}" \
+    -Ddefault-hierarchy=hybrid \
+    -Dfallback-hostname=KaOS \
+    -Ddbuspolicydir=/etc/dbus-1/system.d \
+    -Dman=true \
+    -Dhomed=false
+    # -Ddefault-locale=C
+    ninja
 }
 
 check() {
-  make -C ${pkgname}-${pkgver} check || true
+  cd build
+  ninja test || true
 }
 
 package() {
-  make -C ${pkgname}-${pkgver} DESTDIR=${pkgdir} install
-
+  cd build
+  DESTDIR=${pkgdir} ninja install
+  
+  cd ..
+  
   install -dm755 ${pkgdir}/bin
   ln -s ../usr/lib/systemd/systemd ${pkgdir}/bin/systemd
 
@@ -101,7 +121,7 @@ package() {
 
   ln -s ../lib/systemd/systemd-udevd ${pkgdir}/usr/bin/udevd
 
-  install -m644 systemd-${pkgver}/tmpfiles.d/legacy.conf ${pkgdir}/usr/lib/tmpfiles.d
+  install -m644 systemd-${_pkgver}/tmpfiles.d/legacy.conf ${pkgdir}/usr/lib/tmpfiles.d
 
   # Replace in optical 
   sed -i 's#GROUP="dialout"#GROUP="uucp"#g;
@@ -117,7 +137,6 @@ package() {
   install -Dm644 ${srcdir}/initcpio-hook-udev ${pkgdir}/usr/lib/initcpio/hooks/udev
   
   rm -r ${pkgdir}/usr/lib/rpm
-  rm ${pkgdir}/usr/lib/sysctl.d/50-coredump.conf
   
   # 208 changed permissions for /var/log/journal
   #install -o root -g systemd-journal -dm2755 ${pkgdir}/var/log/journal
@@ -133,11 +152,15 @@ package() {
   install -D -m0644 ${srcdir}/KaOS_fallback.conf ${pkgdir}/usr/lib/systemd/boot/loader/entries/KaOS_fallback.conf
   install -D -m0644 ${srcdir}/splash.bmp ${pkgdir}/usr/lib/systemd/boot/splash.bmp
   
-  # adjust incorrect default PAM config
-  sed 's|system-auth|system-login|g' -i ${pkgdir}/etc/pam.d/systemd-user
+  # adjust default PAM config
+  sed 's|account required pam_unix.so|account  include system-login|g' -i ${pkgdir}/etc/pam.d/systemd-user
+  sed 's|session optional pam_systemd.so|session  include system-login|g' -i ${pkgdir}/etc/pam.d/systemd-user
   
   # pacman hook
   install -Dm644 ../systemd-tmpfiles.hook ${pkgdir}/usr/share/libalpm/hooks/systemd-tmpfiles.hook
+  
+  # Systemd 239 started shipping openresolv replacement, remove for now, conflicting file only
+  rm ${pkgdir}/usr/sbin/resolvconf
 }
 
 

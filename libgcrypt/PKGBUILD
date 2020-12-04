@@ -1,20 +1,22 @@
 
 pkgname=libgcrypt
-pkgver=1.7.3
+pkgver=1.8.7
 pkgrel=1
 pkgdesc="GNU's basic cryptographic library"
 arch=('x86_64')
-url="http://www.gnupg.org"
+url="https://www.gnupg.org/software/libgcrypt/index.html"
 license=('LGPL')
 depends=('libgpg-error')
 options=('!libtool' 'emptydirs')
-source=("ftp://ftp.gnupg.org/gcrypt/libgcrypt/${pkgname}-${pkgver}.tar.bz2")
-md5sums=('c869e542cc13a1c28d8055487bf7f5c4')
+source=("https://www.gnupg.org/ftp/gcrypt/libgcrypt/${pkgname}-${pkgver}.tar.bz2")
+sha1sums=('ea79a279b27bf25cb1564f96693128f8fc9f41d6')
 
 build() {
   cd ${pkgname}-${pkgver}
 
-  ./configure --prefix=/usr --disable-padlock-support --disable-static
+  ./configure --prefix=/usr \
+    --disable-padlock-support \
+    --disable-static
   make
 }
 

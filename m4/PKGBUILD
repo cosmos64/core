@@ -1,31 +1,34 @@
 
 pkgname=m4
-pkgver=1.4.17
-pkgrel=4
+pkgver=1.4.18
+pkgrel=2
 pkgdesc="m4 macro processor"
 arch=('x86_64')
 license=('GPL3')
-url="http://www.gnu.org/software/m4"
+url="https://www.gnu.org/software/m4"
 groups=('base-devel')
 depends=('glibc' 'bash')
-source=("ftp://ftp.gnu.org/gnu/m4/$pkgname-$pkgver.tar.xz")
-md5sums=('12a3c829301a4fd6586a57d3fcf196dc')
+source=("https://ftp.gnu.org/gnu/m4/${pkgname}-${pkgver}.tar.xz"
+        "https://raw.githubusercontent.com/gentoo/gentoo/master/sys-devel/m4/files/m4-1.4.18-glibc228.patch")
+md5sums=('730bb15d96fffe47e148d1e09235af82'
+         '14c5e9b88e0ce006b0113fbcdc067159')
 
 build() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
+  patch -p1 -i ${srcdir}/m4-1.4.18-glibc228.patch
   
   ./configure --prefix=/usr
   make
 }
 
 check() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   
   make check
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   
   make prefix=${pkgdir}/usr install
 }

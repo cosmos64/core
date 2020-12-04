@@ -2,38 +2,36 @@
 # NOTE: valgrind requires rebuilt with each major glibc version
 
 pkgname=glibc
-pkgver=2.23
-pkgrel=2
+pkgver=2.32
+_commit=9533f19aa5cd265db813db6923f8eb2fc9c3bcc3
+pkgrel=1
 pkgdesc="GNU C Library"
 arch=('x86_64')
-url="http://www.gnu.org/software/libc"
+url="https://www.gnu.org/software/libc"
 license=('GPL' 'LGPL')
 groups=('base')
-depends=('linux-api-headers>=4.6' 'tzdata')
-makedepends=('gcc>=5.4')
+depends=('linux-api-headers' 'tzdata')
+makedepends=('gcc' 'python3')
 backup=(etc/gai.conf
         etc/locale.gen
         etc/nscd.conf)
 options=('!strip')
 install=glibc.install
-source=("http://ftp.gnu.org/gnu/libc/${pkgname}-${pkgver}.tar.xz"
-        "http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.22-largefile-1.patch"
+source=("https://ftp.gnu.org/gnu/libc/${pkgname}-${pkgver}.tar.xz"
+#source=("https://github.com/bminor/glibc/archive/${_commit}.zip"
+        #"http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.22-largefile-1.patch"
         'locale.gen.txt'
         'locale-gen'
         'glibc.conf')
-md5sums=('456995968f3acadbed39f5eba31678df'
-         '203fe9133e82f2b59969c116b70fd84e'
+md5sums=('720c7992861c57cf97d66a2f36d8d1fa'
+         #'203fe9133e82f2b59969c116b70fd84e'
          '07ac979b6ab5eeb778d55f041529d623'
          '476e9113489f93b348b21e144b6a8fcf'
          '8b3298de2392a10905a64ceccf56d2c1')
 
 build() {
-  cd ${srcdir}/${pkgname}-${pkgver}
-  #patch -p1 -i $srcdir/glibc-2.22-largefile-1.patch
-  
-  cd ${srcdir}
-  mkdir glibc-build
-  cd glibc-build
+  mkdir -p build
+  cd build
 
   echo "slibdir=/lib" >> configparms
   
@@ -41,17 +39,16 @@ build() {
   CFLAGS=${CFLAGS/-fstack-protector/}
   CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
 
-  ${srcdir}/glibc-${pkgver}/configure --prefix=/usr \
-      --libdir=/usr/lib --libexecdir=/usr/lib \
+  ../glibc-${pkgver}/configure --prefix=/usr \
+      --libdir=/usr/lib \
+      --libexecdir=/usr/lib \
       --with-headers=/usr/include \
       --with-bugurl=https://github.com/KaOSx/core/issues \
       --enable-add-ons \
-      --enable-obsolete-rpc \
-      --enable-kernel=2.6.32 \
-      --enable-bind-now --disable-profile \
+      --enable-bind-now \
+      --disable-profile \
       --enable-stackguard-randomization \
       --enable-lock-elision \
-      --enable-multi-arch \
       --disable-werror
 
   # build libs without stack protector
@@ -63,19 +60,20 @@ build() {
   echo "CC += -fstack-protector -D_FORTIFY_SOURCE=2" >> configparms
   echo "CXX += -fstack-protector -D_FORTIFY_SOURCE=2" >> configparms
   make
-
-  # no stack protector for running tests
-  sed -i '5,7d' configparms
 }
 
 check() {
-  cd ${srcdir}/glibc-build
+  cd build
+  
+  # no stack protector for running tests
+  sed -i '5,7d' configparms
+  sed -i '/FORTIFY/d' configparms
   
   make check || true
 }
 
 package() {
-  cd ${srcdir}/glibc-build
+  cd build
 
   install -dm755 ${pkgdir}/etc
   touch ${pkgdir}/etc/ld.so.conf
@@ -108,19 +106,19 @@ package() {
   cd ${pkgdir}
   strip $STRIP_BINARIES sbin/{ldconfig,sln} \
                         usr/bin/{gencat,getconf,getent,iconv,locale} \
-                        usr/bin/{localedef,pcprofiledump,rpcgen,sprof} \
+                        usr/bin/{localedef,pcprofiledump,sprof} \
                         usr/lib/getconf/* \
                         usr/sbin/{iconvconfig,nscd}
 
-  strip $STRIP_STATIC usr/lib/*.a 
+  #strip $STRIP_STATIC usr/lib/*.a 
 
-  strip $STRIP_SHARED lib/{libanl,libBrokenLocale,libcidn,libcrypt}-*.so \
-                      lib/libnss_{compat,dns,files,hesiod,nis,nisplus}-*.so \
+  strip $STRIP_SHARED lib/{libanl,libBrokenLocale,libcrypt}-*.so \
+                      lib/libnss_{compat,dns,files,hesiod}-*.so \
                       lib/{libdl,libm,libnsl,libresolv,librt,libutil}-*.so \
                       lib/{libmemusage,libpcprofile,libSegFault}.so \
                       usr/lib/{audit,gconv}/*.so \
                       lib/libmvec-*.so
 
   # Still needed?  Add /usr/lib32 to the default library search path
-  install -Dm644 "$srcdir/glibc.conf" "$pkgdir/etc/ld.so.conf.d/glibc.conf"
+  install -Dm644 ${srcdir}/glibc.conf ${pkgdir}/etc/ld.so.conf.d/glibc.conf
 }

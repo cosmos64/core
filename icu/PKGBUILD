@@ -1,36 +1,37 @@
 
 pkgname=icu
-pkgver=57.1
-_pkgver=57_1
-pkgrel=2
+pkgver=67.1
+_pkgver=67_1
+pkgrel=1
 pkgdesc="International Components for Unicode library"
 arch=('x86_64')
 url="http://www.icu-project.org/"
 license=('custom:"icu"')
 depends=('gcc-libs' 'sh')
-source=("http://download.icu-project.org/files/icu4c/${pkgver}/${pkgname}4c-${_pkgver}-src.tgz"
-        'icu.8198.revert.icu5431.patch')
-md5sums=('976734806026a4ef8bdd17937c8898b9'
-         'ebd5470fc969c75e52baf4af94a9ee82')
+makedepends=('python3')
+source=("https://github.com/unicode-org/icu/releases/download/release-67-1/${pkgname}4c-${_pkgver}-src.tgz")
+md5sums=('c4d62b497cbd89ab2a9ca6b543e57b30')
 
 build() {
-  cd ${srcdir}/icu/source
+  cd icu/source
   # fix Malayalam encoding https://bugzilla.redhat.com/show_bug.cgi?id=654200
-  patch -Rp3 -i ${srcdir}/icu.8198.revert.icu5431.patch
+  #patch -Rp3 -i ${srcdir}/icu.8198.revert.icu5431.patch
+  # http://bugs.icu-project.org/trac/changeset/39484
+  #patch -p4 -i ${srcdir}/keyword-list.diff
   
   ./configure --prefix=/usr --sysconfdir=/etc --mandir=/usr/share/man
   make 
 }
 
 check() {
-  cd "$srcdir/icu/source"
+  cd icu/source
   
   make -k check 
 }
 
 package() {
-  cd ${srcdir}/icu/source
+  cd icu/source
   make -j1 DESTDIR=${pkgdir} install 
 
-  install -Dm644 ${srcdir}/icu/license.html ${pkgdir}/usr/share/licenses/icu/license.html
+  install -Dm644 ../LICENSE ${pkgdir}/usr/share/licenses/icu/LICENSE
 }

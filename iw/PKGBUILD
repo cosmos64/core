@@ -1,21 +1,18 @@
 
 pkgname=iw
-pkgver=4.9
+pkgver=5.9
 pkgrel=1
 pkgdesc="nl80211 based CLI configuration utility for wireless devices"
 arch=('x86_64')
-url="http://wireless.kernel.org/en/users/Documentation/iw"
+url="https://wireless.wiki.kernel.org/en/users/documentation/iw"
 license=('GPL')
 depends=('libnl')
 makedepends=('linux-api-headers' 'pkg-config')
-source=("https://www.kernel.org/pub/software/network/${pkgname}/${pkgname}-${pkgver}.tar.xz"
-        'version-sh.patch')
-md5sums=('02d36655b45a0288feb0e87e461e365a'
-         '9e8d3294410721165571020a671121da')
+source=("https://www.kernel.org/pub/software/network/iw/${pkgname}-${pkgver}.tar.xz")
+sha256sums=('293a07109aeb7e36267cf59e3ce52857e9ffae3a6666eb8ac77894b1839fe1f2')
 
 build() {
   cd ${pkgname}-${pkgver}
-  #patch -p0 -i ${srcdir}/version-sh.patch
   
   make
 }

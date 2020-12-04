@@ -1,23 +1,24 @@
 
 pkgname=bridge-utils
-pkgver=1.6
+pkgver=1.7
 pkgrel=1
 pkgdesc="EEE 802.1d ethernet bridging (plus Spanning Tree protocol) for the linux kernel."
-arch='x86_64'
-url="http://www.linuxfoundation.org/collaborate/workgroups/networking/bridge"
+arch=('x86_64')
+url="https://wiki.linuxfoundation.org/networking/bridge"
 license=('GPL')
 depends=('glibc' 'iptables')
-source=("https://www.kernel.org/pub/linux/utils/net/bridge-utils/${pkgname}-${pkgver}.tar.xz")
-md5sums=('541ae1c50cc268056693608920e6c908')
+source=("https://mirrors.edge.kernel.org/pub/linux/kernel/people/shemminger/bridge-utils/${pkgname}-${pkgver}.tar.xz")
+sha256sums=('939987e659b1a4c36ae46f44b6687f373bc5c916a9eab91f775630f5e38b997e')
 
 build() {
   cd ${pkgname}-${pkgver}
   
   aclocal
   autoconf
-  ./configure --prefix=/usr \
-      --sbindir=/usr/bin \
-      --sysconfdir=/etc
+  ./configure \
+    --prefix=/usr \
+    --sbindir=/usr/bin \
+    --sysconfdir=/etc
   make
 }
 

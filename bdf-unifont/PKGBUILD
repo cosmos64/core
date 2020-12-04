@@ -1,23 +1,23 @@
 
 pkgname=bdf-unifont
-pkgver=5.1.20080820
-pkgrel=4
+_pkgname=unifont
+pkgver=13.0.04
+pkgrel=1
 epoch=1
-pkgdesc="GNU Unifont Glyphs"
+pkgdesc="GNU Unifont, with glyphs for every printable code point in the Unicode Basic Multilingual Plane (BMP)."
 arch=('x86_64')
 license=('custom' 'GPL2')
-url="http://unifoundry.com/unifont.html"
-depends=('fontconfig' 'xorg-fonts-encodings' 'xorg-font-utils')
+url="http://unifoundry.com/unifont/index.html"
+depends=('xorg-font-utils')
 install=unifont.install
-source=('http://unifoundry.com/unifont-5.1.20080820.bdf.gz'
+source=("http://unifoundry.com/pub/unifont/${_pkgname}-${pkgver}/font-builds/${_pkgname}-${pkgver}.bdf.gz"
         'LICENSE')
-md5sums=('6b8263ceccef33bd633aa019d74b7943'
+md5sums=('1139e646a643d0146a376b477fa418b6'
          '64da5a96d6789d29d485cd67a43bc547')
 
 package() {
-  install -Dm644 ${srcdir}/unifont-5.1.20080820.bdf \
-	${pkgdir}/usr/share/fonts/misc/unifont.bdf
+  install -Dm644 ${_pkgname}-${pkgver}.bdf ${pkgdir}/usr/share/fonts/misc/unifont.bdf
 
-  install -Dm644 ${srcdir}/LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
+  install -Dm644 ../LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
 }
 

@@ -1,19 +1,19 @@
 
 pkgname=openresolv
-pkgver=3.8.1
-pkgrel=2
+pkgver=3.11.0
+pkgrel=1
 pkgdesc="resolv.conf management framework (resolvconf)"
 arch=('x86_64')
-url="http://roy.marples.name/projects/openresolv"
+url="https://roy.marples.name/projects/openresolv"
 license=('custom:BSD')
 depends=('bash')
 makedepends=('systemd')
 backup=('etc/resolvconf.conf')
 provides=('resolvconf')
-source=("http://roy.marples.name/downloads/openresolv/${pkgname}-${pkgver}.tar.xz"
+source=("https://roy.marples.name/downloads/openresolv/${pkgname}-${pkgver}.tar.xz"
         'fs33801.patch')
-md5sums=('378cac69367745c03a932559298d6b0d'
-         '1e58ffbd83c55a7c51afb8a5d8b74742')
+sha256sums=('eaea9d1d1e07b3fe81305178d7ef6a8c9e2a9f3b751c9b52077941809058fc3c'
+            '934a65dff1b080f8fd6367781a4b3357d29d10516fbaeb282a68c32f44782dac')
 
 build() {
   cd ${pkgname}-${pkgver}

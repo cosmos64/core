@@ -1,8 +1,10 @@
+SPDX-License-Identifier: GPL-2.0
+
 diff --git a/include/linux/shmem_fs.h b/include/linux/shmem_fs.h
-index ff078e7..1edb519 100644
+index 7a35a6901221..b7af7d8bfa48 100644
 --- a/include/linux/shmem_fs.h
 +++ b/include/linux/shmem_fs.h
-@@ -24,10 +24,13 @@ struct shmem_inode_info {
+@@ -27,10 +27,13 @@ struct shmem_inode_info {
  };
  
  struct shmem_sb_info {
@@ -19,26 +21,36 @@ index ff078e7..1edb519 100644
  	umode_t mode;		    /* Mount mode for root directory */
  	unsigned char huge;	    /* Whether to try for hugepages */
 diff --git a/mm/shmem.c b/mm/shmem.c
-index 971fc83..82706ad 100644
+index bd8840082c94..7f29f8cb3921 100644
 --- a/mm/shmem.c
 +++ b/mm/shmem.c
-@@ -104,9 +104,13 @@ static unsigned long shmem_default_max_blocks(void)
- 	return totalram_pages / 2;
+@@ -110,7 +110,7 @@ struct shmem_falloc {
+ 
+ struct shmem_options {
+ 	unsigned long long blocks;
+-	unsigned long long inodes;
++	int inodes;
+ 	struct mempolicy *mpol;
+ 	kuid_t uid;
+ 	kgid_t gid;
+@@ -128,11 +128,14 @@ static unsigned long shmem_default_max_blocks(void)
+ 	return totalram_pages() / 2;
  }
  
 -static unsigned long shmem_default_max_inodes(void)
 +static int shmem_default_max_inodes(void)
  {
--	return min(totalram_pages - totalhigh_pages, totalram_pages / 2);
+ 	unsigned long nr_pages = totalram_pages();
 +	unsigned long ul;
-+
+ 
+-	return min(nr_pages - totalhigh_pages(), nr_pages / 2);
 +	ul = INT_MAX;
-+	ul = min3(ul, totalram_pages - totalhigh_pages, totalram_pages / 2);
++	ul = min3(ul, nr_pages - totalhigh_pages(), nr_pages / 2);
 +	return ul;
  }
  #endif
  
-@@ -1042,6 +1046,11 @@ static void shmem_evict_inode(struct inode *inode)
+@@ -1100,6 +1103,11 @@ static void shmem_evict_inode(struct inode *inode)
  
  	simple_xattrs_free(&info->xattrs);
  	WARN_ON(inode->i_blocks);
@@ -50,7 +62,7 @@ index 971fc83..82706ad 100644
  	shmem_free_inode(inode->i_sb);
  	clear_inode(inode);
  }
-@@ -2074,13 +2083,13 @@ static struct inode *shmem_get_inode(struct super_block *sb, const struct inode
+@@ -2240,13 +2248,13 @@ static struct inode *shmem_get_inode(struct super_block *sb, const struct inode
  	struct inode *inode;
  	struct shmem_inode_info *info;
  	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
@@ -64,12 +76,11 @@ index 971fc83..82706ad 100644
 -		inode->i_ino = get_next_ino();
  		inode_init_owner(inode, dir, mode);
  		inode->i_blocks = 0;
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-@@ -2122,6 +2131,25 @@ static struct inode *shmem_get_inode(struct super_block *sb, const struct inode
- 			mpol_shared_policy_init(&info->policy, NULL);
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+@@ -2290,6 +2298,25 @@ static struct inode *shmem_get_inode(struct super_block *sb, const struct inode
  			break;
  		}
-+
+ 
 +		if (!sbinfo->idr_nouse) {
 +			/* inum 0 and 1 are unused */
 +			mutex_lock(&sbinfo->idr_lock);
@@ -88,10 +99,11 @@ index 971fc83..82706ad 100644
 +			}
 +		} else
 +			inode->i_ino = get_next_ino();
++
+ 		lockdep_annotate_inode_mutex_key(inode);
  	} else
  		shmem_free_inode(sb);
- 	return inode;
-@@ -3314,8 +3342,7 @@ static struct dentry *shmem_get_parent(struct dentry *child)
+@@ -3292,8 +3319,7 @@ static struct dentry *shmem_get_parent(struct dentry *child)
  static int shmem_match(struct inode *ino, void *vfh)
  {
  	__u32 *fh = vfh;
@@ -101,7 +113,7 @@ index 971fc83..82706ad 100644
  	return ino->i_ino == inum && fh[0] == ino->i_generation;
  }
  
-@@ -3326,14 +3353,11 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+@@ -3313,14 +3339,11 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
  	struct dentry *dentry = NULL;
  	u64 inum;
  
@@ -117,9 +129,9 @@ index 971fc83..82706ad 100644
 +	inum = fid->raw[1];
 +	inode = ilookup5(sb, inum, shmem_match, fid->raw);
  	if (inode) {
- 		dentry = d_find_alias(inode);
+ 		dentry = shmem_find_alias(inode);
  		iput(inode);
-@@ -3345,30 +3369,15 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+@@ -3332,30 +3355,15 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
  static int shmem_encode_fh(struct inode *inode, __u32 *fh, int *len,
  				struct inode *parent)
  {
@@ -153,34 +165,34 @@ index 971fc83..82706ad 100644
  	return 1;
  }
  
-@@ -3432,7 +3441,7 @@ static int shmem_parse_options(char *options, struct shmem_sb_info *sbinfo,
- 				goto bad_val;
- 		} else if (!strcmp(this_char,"nr_inodes")) {
- 			sbinfo->max_inodes = memparse(value, &rest);
--			if (*rest)
-+			if (*rest || sbinfo->max_inodes < 2)
- 				goto bad_val;
- 		} else if (!strcmp(this_char,"mode")) {
- 			if (remount)
-@@ -3497,7 +3506,7 @@ static int shmem_remount_fs(struct super_block *sb, int *flags, char *data)
+@@ -3430,7 +3438,7 @@ static int shmem_parse_one(struct fs_context *fc, struct fs_parameter *param)
+ 		break;
+ 	case Opt_nr_inodes:
+ 		ctx->inodes = memparse(param->string, &rest);
+-		if (*rest)
++		if (*rest || ctx->inodes < 2)
+ 			goto bad_value;
+ 		ctx->seen |= SHMEM_SEEN_INODES;
+ 		break;
+@@ -3528,7 +3536,7 @@ static int shmem_reconfigure(struct fs_context *fc)
  {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
- 	struct shmem_sb_info config = *sbinfo;
+ 	struct shmem_options *ctx = fc->fs_private;
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(fc->root->d_sb);
 -	unsigned long inodes;
 +	int inodes;
- 	int error = -EINVAL;
+ 	const char *err;
  
- 	config.mpol = NULL;
-@@ -3546,7 +3555,7 @@ static int shmem_show_options(struct seq_file *seq, struct dentry *root)
+ 	spin_lock(&sbinfo->stat_lock);
+@@ -3587,7 +3595,7 @@ static int shmem_show_options(struct seq_file *seq, struct dentry *root)
  		seq_printf(seq, ",size=%luk",
  			sbinfo->max_blocks << (PAGE_SHIFT - 10));
  	if (sbinfo->max_inodes != shmem_default_max_inodes())
 -		seq_printf(seq, ",nr_inodes=%lu", sbinfo->max_inodes);
 +		seq_printf(seq, ",nr_inodes=%d", sbinfo->max_inodes);
- 	if (sbinfo->mode != (S_IRWXUGO | S_ISVTX))
+ 	if (sbinfo->mode != (0777 | S_ISVTX))
  		seq_printf(seq, ",mode=%03ho", sbinfo->mode);
  	if (!uid_eq(sbinfo->uid, GLOBAL_ROOT_UID))
-@@ -3640,6 +3649,8 @@ static void shmem_put_super(struct super_block *sb)
+@@ -3611,6 +3619,8 @@ static void shmem_put_super(struct super_block *sb)
  {
  	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
  
@@ -189,16 +201,16 @@ index 971fc83..82706ad 100644
  	percpu_counter_destroy(&sbinfo->used_blocks);
  	mpol_put(sbinfo->mpol);
  	kfree(sbinfo);
-@@ -3658,6 +3669,8 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
- 	if (!sbinfo)
- 		return -ENOMEM;
- 
+@@ -3651,6 +3661,8 @@ static int shmem_fill_super(struct super_block *sb, struct fs_context *fc)
+ #else
+ 	sb->s_flags |= SB_NOUSER;
+ #endif
 +	mutex_init(&sbinfo->idr_lock);
 +	idr_init(&sbinfo->idr);
- 	sbinfo->mode = S_IRWXUGO | S_ISVTX;
- 	sbinfo->uid = current_fsuid();
- 	sbinfo->gid = current_fsgid();
-@@ -3765,6 +3778,15 @@ static void shmem_destroy_inodecache(void)
+ 	sbinfo->max_blocks = ctx->blocks;
+ 	sbinfo->free_inodes = sbinfo->max_inodes = ctx->inodes;
+ 	sbinfo->uid = ctx->uid;
+@@ -3762,6 +3774,15 @@ static void shmem_destroy_inodecache(void)
  	kmem_cache_destroy(shmem_inode_cachep);
  }
  
@@ -214,11 +226,11 @@ index 971fc83..82706ad 100644
  static const struct address_space_operations shmem_aops = {
  	.writepage	= shmem_writepage,
  	.set_page_dirty	= __set_page_dirty_no_writeback,
-@@ -3906,6 +3928,7 @@ int __init shmem_init(void)
+@@ -3902,6 +3923,7 @@ int __init shmem_init(void)
  		pr_err("Could not kern_mount tmpfs\n");
  		goto out1;
  	}
 +	shmem_no_idr(shm_mnt->mnt_sb);
  
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
- 	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (has_transparent_hugepage() && shmem_huge > SHMEM_HUGE_DENY)

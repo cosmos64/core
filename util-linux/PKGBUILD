@@ -1,18 +1,19 @@
 
 pkgname=util-linux
-pkgver=2.28.2
-pkgrel=1
+pkgver=2.36.1
+_pkgver=2.36
+pkgrel=3
 pkgdesc="Miscellaneous system utilities for Linux"
 url="http://www.kernel.org/pub/linux/utils/util-linux/"
 arch=('x86_64')
 groups=('base')
 depends=('pam' 'shadow' 'coreutils' 'glibc')
 makedepends=('bc' 'systemd' 'python3')
-conflicts=('util-linux-ng' 'eject')
-provides=("util-linux-ng=${pkgver}" 'eject')
+conflicts=('util-linux-ng' 'eject' 'rfkill')
+provides=("util-linux-ng=${pkgver}" 'eject' 'rfkill')
 license=('GPL2')
 options=('!libtool')
-source=("ftp://ftp.kernel.org/pub/linux/utils/${pkgname}/v2.28/${pkgname}-${pkgver}.tar.xz"
+source=("https://www.kernel.org/pub/linux/utils/util-linux/v${_pkgver}/${pkgname}-${pkgver}.tar.xz"
         'uuidd.tmpfiles'
         'pam-login'
         'pam-common'
@@ -21,26 +22,33 @@ source=("ftp://ftp.kernel.org/pub/linux/utils/${pkgname}/v2.28/${pkgname}-${pkgv
         'system-local-login'
         'system-login'
         'system-remote-login'
-        'system-services')
+        'system-services'
+        "https://github.com/karelzak/util-linux/commit/fa3fface0f83dbf186f046210700473da7a4800b.diff"
+        "https://github.com/karelzak/util-linux/commit/ac762ed71f982468f4c83291158e97cf86281beb.diff")
 backup=(etc/pam.d/chfn
         etc/pam.d/chsh
         etc/pam.d/login
         etc/pam.d/su
         etc/pam.d/su-l)
 install=util-linux.install
-md5sums=('46a232a37bce45371a86d19300edc47a'
-         'a39554bfd65cccfd8254bb46922f4a67'
-         '4368b3f98abd8a32662e094c54e7f9b1'
-         'a31374fef2cba0ca34dfc7078e2969e4'
-         'fa85e5cce5d723275b14365ba71a8aad'
-         '6116b8e199a3dfd26a085a67a718435d'
-         '477237985820117a0e6e1b13a86eb599'
-         '34959361be0e1c13c24ce6af84e1eb22'
-         '477237985820117a0e6e1b13a86eb599'
-         '6969307eef026979703a6eba33c2e3eb')
+sha256sums=('09fac242172cd8ec27f0739d8d192402c69417617091d8c6e974841568f37eed'
+            '5de0aadbbeb1ebb0776f3c550111fe045dfdf3571c574f415c62ca1966c49616'
+            '993a3096c2b113e6800f2abbd5d4233ebf1a97eef423990d3187d665d3490b92'
+            'fc6807842f92e9d3f792d6b64a0d5aad87995a279153ab228b1b2a64d9f32f20'
+            '51eac9c2a2f51ad3982bba35de9aac5510f1eeff432d2d63c6362e45d620afc0'
+            '1c80c37fc063c703fadf3a8e5a6fb3ef7ddc24a5869cd7fe519708d082e414cf'
+            '005736b9bd650ff5e5d82a7e288853776d5bb8c90185d5774c07231c1e1c64a9'
+            '803ebb0e37763d2653ead76db115d76dcc30b050fce069be195a05b3ca53d304'
+            '005736b9bd650ff5e5d82a7e288853776d5bb8c90185d5774c07231c1e1c64a9'
+            '6eb1acdd3fa9f71a7f93fbd529be57ea65bcafc6e3a98a06af4d88013fc6a567'
+            'e4a2cb349ccf338fe33136cc0c66017b3fa7317e53c1dfd26d3393018f5d0df5'
+            '6f874f00306b4047f70dc114d883f73df5b00777b312df2da85689bff33cb1b7')
 
 build() {
   cd ${pkgname}-${pkgver}
+  #fix sfdisk failures with extended partitions
+  #patch -p1 -i ${srcdir}/fa3fface0f83dbf186f046210700473da7a4800b.diff
+  #patch -p1 -i ${srcdir}/ac762ed71f982468f4c83291158e97cf86281beb.diff
 
   ./configure --prefix=/usr \
               --libdir=/usr/lib \
@@ -52,15 +60,14 @@ build() {
               --enable-newgrp \
               --enable-chfn-chsh \
               --enable-mesg \
-              --enable-socket-activation \
               --with-python=3
               #--enable-libmount-force-mountinfo systemd 230 need?
 
   make
 }
 
-# only 1 libmount: tab files-py subtest fails, leaving dep to test the rest
 check() {
+  # 1 fail column: invalid multibyte, leaving dep to test the rest
   make -C ${pkgname}-${pkgver} check
 }
 

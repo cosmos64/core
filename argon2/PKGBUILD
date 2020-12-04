@@ -1,0 +1,38 @@
+ 
+pkgname=argon2
+_pkgname=phc-winner-argon2
+pkgver=20190702
+pkgrel=1
+pkgdesc='Password hash Argon2, winner of Password Hashing Competition (PHC).'
+arch=('x86_64')
+url='https://github.com/P-H-C/phc-winner-argon2'
+license=('CC-0')
+depends=('glibc')
+source=("https://github.com/P-H-C/phc-winner-argon2/archive/${pkgver}.tar.gz")
+sha256sums=('daf972a89577f8772602bf2eb38b6a3dd3d922bf5724d45e7f9589b5e830442c')
+
+prepare() {
+  cd ${_pkgname}-${pkgver}
+
+  sed -e "s|Version: @UPSTREAM_VER@|Version: ${pkgver}|" -i libargon2.pc.in
+}
+
+build() {
+  cd ${_pkgname}-${pkgver}
+
+  make LIBRARY_REL=lib
+}
+
+check() {
+  cd ${_pkgname}-${pkgver}
+
+  make
+}
+
+package() {
+  cd ${_pkgname}-${pkgver}
+  make LIBRARY_REL=lib DESTDIR=${pkgdir} install
+
+  install -D -m0644 LICENSE ${pkgdir}/usr/share/licenses/argon2/LICENSE
+  #install -D -m0644 libargon2.pc ${pkgdir}/usr/lib/pkgconfig/libargon2.pc
+}
